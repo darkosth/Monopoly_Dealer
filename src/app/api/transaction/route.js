@@ -19,6 +19,21 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
+    // Validar los fondos del emisor (sender)
+    if (senderId) {
+      const sender = await prisma.player.findUnique({
+        where: { id: senderId }
+      });
+
+      if (!sender) {
+        return NextResponse.json({ error: 'Sender not found' }, { status: 404 });
+      }
+
+      if (sender.balance < amount) {
+        return NextResponse.json({ error: 'Insufficient funds' }, { status: 400 });
+      }
+    }
+
     const operations = [];
 
     if (senderId) {

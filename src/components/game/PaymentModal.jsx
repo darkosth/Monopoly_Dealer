@@ -33,7 +33,10 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
         }),
       });
 
-      if (!response.ok) throw new Error('Transaction failed');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Something went wrong. Please try again.');
+      }
 
       // Mostrar notificación de éxito
       const receiverName = receiverId === 'bank' ? 'the Bank' : players.find(p => p.id === receiverId)?.name;
@@ -48,7 +51,7 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
 
     } catch (error) {
       toast.error("Payment Failed", {
-        description: "Something went wrong. Please try again.",
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
