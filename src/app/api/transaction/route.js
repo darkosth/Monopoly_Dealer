@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function POST(request) {
   try {
     // AHORA RECIBIMOS EL roomCode
-    const { roomCode, senderId, receiverId, amount } = await request.json();
+    const { roomCode, senderId, receiverId, amount, isTax } = await request.json();
 
     if (!roomCode || !amount || amount <= 0) {
       return NextResponse.json({ error: 'Invalid transaction details' }, { status: 400 });
@@ -52,6 +52,14 @@ export async function POST(request) {
           data: { balance: { increment: amount } }
         })
       );
+    } else if (isTax) {
+      // Si el pago va al banco y es un impuesto/multa, se incrementa el Pozo
+      operations.push(
+        prisma.gameSession.update({
+          where: { id: gameSession.id },
+          data: { freeParkingAmount: { increment: amount } }
+        })
+      );
     }
 
     operations.push(
@@ -59,7 +67,7 @@ export async function POST(request) {
         data: {
           gameSessionId: gameSession.id, // Usamos el ID que acabamos de buscar
           senderId,
-          receiverId,
+          receiverId, // Será null para el banco
           amount
         }
       })

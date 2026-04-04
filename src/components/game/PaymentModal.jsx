@@ -26,14 +26,19 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
     setIsLoading(true);
 
     try {
+      const isBankProperty = receiverId === 'bank_property';
+      const isBankTax = receiverId === 'bank_tax';
+      const isBank = isBankProperty || isBankTax;
+
       const response = await fetch('/api/transaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           roomCode,
           senderId: currentUserId,
-          receiverId: receiverId === 'bank' ? null : receiverId, // Si es el banco, enviamos null
-          amount: parseInt(amount, 10)
+          receiverId: isBank ? null : receiverId,
+          amount: parseInt(amount, 10),
+          isTax: isBankTax
         }),
       });
 
@@ -43,7 +48,7 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
       }
 
       // Mostrar notificación de éxito
-      const receiverName = receiverId === 'bank' ? 'the Bank' : players.find(p => p.id === receiverId)?.name;
+      const receiverName = isBank ? (isBankTax ? 'Taxes (Free Parking)' : 'the Bank') : players.find(p => p.id === receiverId)?.name;
       toast.success("Payment Successful", {
         description: `You paid $${amount} to ${receiverName}.`,
       });
@@ -80,7 +85,8 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
                 <SelectValue placeholder="Select a player or Bank" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="bank" className="font-bold text-slate-700">🏦 The Bank</SelectItem>
+                <SelectItem value="bank_property" className="font-bold text-slate-700">🏦 Bank (Buy Property/House)</SelectItem>
+                <SelectItem value="bank_tax" className="font-bold text-orange-600">🏛️ Bank (Taxes & Fines 👉 Free Parking)</SelectItem>
                 {otherPlayers.map((player) => (
                   <SelectItem key={player.id} value={player.id}>
                     👤 {player.name}
