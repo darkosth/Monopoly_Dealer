@@ -8,10 +8,16 @@ const generateRoomCode = () => {
 
 export async function POST(request) {
   try {
-    const { hostName } = await request.json();
+    // 1. NUEVO: Extraemos también el pin de la petición
+    const { hostName, pin } = await request.json();
 
     if (!hostName) {
       return NextResponse.json({ error: 'Host name is required' }, { status: 400 });
+    }
+
+    // 2. NUEVO: Validamos que el PIN venga en la petición
+    if (!pin) {
+      return NextResponse.json({ error: 'PIN is required' }, { status: 400 });
     }
 
     const roomCode = generateRoomCode();
@@ -23,14 +29,15 @@ export async function POST(request) {
         players: {
           create: {
             name: hostName,
+            pin: pin,          // <--- 3. NUEVO: Aquí guardamos el PIN del Host en la base de datos
             isHost: true,
-            balance: 1500, // Balance inicial por defecto
+            balance: 1500,     // Balance inicial por defecto
           }
         }
       },
       // Le pedimos a Prisma que nos devuelva también los jugadores recién creados
       include: {
-        players: true, 
+        players: true,
       }
     });
 

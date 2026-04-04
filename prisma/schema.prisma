@@ -24,7 +24,8 @@ model GameSession {
 model Player {
   id            String      @id @default(uuid())
   name          String
-  balance       Int         @default(1500) // Dinero inicial clásico
+  pin           String      @default("0000")  
+  balance       Int         @default(1500)
   isHost        Boolean     @default(false)
   createdAt     DateTime    @default(now())
   
