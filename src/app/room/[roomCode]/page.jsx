@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PaymentModal from '@/components/game/PaymentModal';
+import TransactionHistoryModal from '@/components/game/TransactionHistoryModal';
 import { toast } from 'sonner';
 
 export default function RoomPage() {
@@ -19,6 +20,7 @@ export default function RoomPage() {
   
   // NUEVO: Estado para controlar si el modal se muestra o no
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -117,14 +119,21 @@ export default function RoomPage() {
         </div>
         
         {/* NUEVO: Contenedor de botones de acción */}
-        <div className="flex gap-2 w-full md:w-auto">
+        <div className="flex gap-2 w-full md:w-auto flex-wrap justify-end">
+          <Button 
+            onClick={() => setIsHistoryModalOpen(true)} 
+            variant="outline" 
+            className="w-full md:w-auto text-slate-700 border-slate-300"
+          >
+            📋 History
+          </Button>
           <Button 
             onClick={() => setIsPaymentModalOpen(true)} 
             className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white"
           >
-            Pay / Send Money
+            💸 Pay
           </Button>
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full md:w-auto">
+          <Button variant="outline" onClick={() => router.push('/')} className="w-full md:w-auto border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
             Leave
           </Button>
         </div>
@@ -154,6 +163,13 @@ export default function RoomPage() {
         onClose={() => setIsPaymentModalOpen(false)}
         roomCode={roomCode}
         currentUserId={currentUserId}
+        players={players}
+      />
+
+      <TransactionHistoryModal 
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        roomCode={roomCode}
         players={players}
       />
     </div>
