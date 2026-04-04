@@ -17,6 +17,7 @@ model GameSession {
   // Relaciones
   players           Player[]
   transactions      TransactionLog[]
+  paymentRequests   PaymentRequest[]
 }
 
 // Tabla para los jugadores de la partida
@@ -40,6 +41,20 @@ model TransactionLog {
   receiverId    String?     // Puede ser nulo si el dinero va al Banco
   timestamp     DateTime    @default(now())
   
+  // Llave foránea
+  gameSessionId String
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+}
+
+// Tabla para solicitudes de pago / cobros
+model PaymentRequest {
+  id            String      @id @default(uuid())
+  amount        Int
+  requesterId   String      // Quien pide el dinero
+  targetPlayerId String     // A quien se le cobra (un jugador específico)
+  status        String      @default("PENDING") // PENDING, PAID, REJECTED
+  createdAt     DateTime    @default(now())
+
   // Llave foránea
   gameSessionId String
   gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PaymentModal from '@/components/game/PaymentModal';
 import TransactionHistoryModal from '@/components/game/TransactionHistoryModal';
+import RequestMoneyModal from '@/components/game/RequestMoneyModal';
+import IncomingRequests from '@/components/game/IncomingRequests';
 import { toast } from 'sonner';
 
 export default function RoomPage() {
@@ -21,6 +23,7 @@ export default function RoomPage() {
   // NUEVO: Estado para controlar si el modal se muestra o no
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -121,6 +124,13 @@ export default function RoomPage() {
         {/* NUEVO: Contenedor de botones de acción */}
         <div className="flex gap-2 w-full md:w-auto flex-wrap justify-end">
           <Button 
+            onClick={() => setIsRequestModalOpen(true)} 
+            variant="outline" 
+            className="w-full md:w-auto text-blue-700 border-blue-300 hover:bg-blue-50"
+          >
+            📥 Request Money
+          </Button>
+          <Button 
             onClick={() => setIsHistoryModalOpen(true)} 
             variant="outline" 
             className="w-full md:w-auto text-slate-700 border-slate-300"
@@ -138,6 +148,9 @@ export default function RoomPage() {
           </Button>
         </div>
       </div>
+
+      {/* Peticiones de Dinero Entrantes */}
+      <IncomingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
       {/* Grid de Jugadores */}
       <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -170,6 +183,14 @@ export default function RoomPage() {
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
         roomCode={roomCode}
+        players={players}
+      />
+
+      <RequestMoneyModal 
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        roomCode={roomCode}
+        currentUserId={currentUserId}
         players={players}
       />
     </div>
