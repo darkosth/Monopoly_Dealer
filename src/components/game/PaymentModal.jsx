@@ -12,6 +12,10 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const currentPlayer = players.find(p => p.id === currentUserId);
+  const currentBalance = currentPlayer?.balance || 0;
+  const isInsufficient = amount !== '' && !isNaN(amount) && Number(amount) > currentBalance;
+
   // Filtramos la lista para que no te puedas pagar a ti mismo
   const otherPlayers = players.filter(p => p.id !== currentUserId);
 
@@ -95,14 +99,20 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
               onChange={(e) => setAmount(e.target.value)}
               min="1"
               required
+              className={isInsufficient ? "border-red-500 text-red-600 focus-visible:ring-red-500" : ""}
             />
+            {isInsufficient && (
+              <p className="text-red-500 text-xs mt-1">
+                Insufficient funds (Max: ${currentBalance})
+              </p>
+            )}
           </div>
 
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || isInsufficient}>
               {isLoading ? 'Processing...' : 'Send Money'}
             </Button>
           </DialogFooter>
