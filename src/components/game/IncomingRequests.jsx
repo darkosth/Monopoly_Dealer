@@ -97,6 +97,15 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
           <div className="flex gap-2">
             <Button
               size="sm"
+              variant="ghost"
+              className="bg-red-600 hover:bg-red-100"
+              onClick={() => handleRespond(req.id, 'reject')}
+              disabled={processingId === req.id}
+            >
+              Reject
+            </Button>
+            <Button
+              size="sm"
               className="bg-green-600 hover:bg-green-700"
               onClick={() => handleRespond(req.id, 'pay')}
               disabled={processingId === req.id}

@@ -71,8 +71,10 @@ export async function GET(request) {
     // Filtro estricto
     if (type === 'incoming') {
       whereClause.targetPlayerId = playerId;
+      whereClause.status = 'PENDING';
     } else if (type === 'outgoing') {
       whereClause.requesterId = playerId;
+      whereClause.status = { in: ['PENDING', 'REJECTED'] };
     } else {
       return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
     }

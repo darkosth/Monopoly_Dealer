@@ -6,8 +6,8 @@ export async function POST(request) {
     // NUEVO: Ahora exigimos recibir el payerId (quién hizo clic)
     const { requestId, action, payerId } = await request.json();
 
-    if (action !== 'pay') {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    if (!requestId || !['pay', 'reject'].includes(action)) {
+      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
     }
 
     const paymentRequest = await prisma.paymentRequest.findUnique({
@@ -24,38 +24,50 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Unauthorized: You cannot pay someone else’s debt.' }, { status: 403 });
     }
 
-    // Si el jugador no tiene suficiente dinero, también lo bloqueamos (Opcional pero recomendado)
-    const payerAccount = await prisma.player.findUnique({ where: { id: payerId } });
-    if (payerAccount.balance < paymentRequest.amount) {
-      return NextResponse.json({ error: 'Insufficient funds' }, { status: 400 });
+    if (action === 'reject') {
+      // Caso de RECHAZO: Solo cambiamos el estado, no hay transacciones de dinero
+      await prisma.paymentRequest.update({
+        where: { id: requestId },
+        data: { status: 'REJECTED' }
+      });
+      return NextResponse.json({ success: true, message: 'Request rejected' });
     }
 
-    const operations = [
-      prisma.player.update({
-        where: { id: paymentRequest.targetPlayerId },
-        data: { balance: { decrement: paymentRequest.amount } }
-      }),
-      prisma.player.update({
-        where: { id: paymentRequest.requesterId },
-        data: { balance: { increment: paymentRequest.amount } }
-      }),
-      prisma.paymentRequest.update({
-        where: { id: requestId },
-        data: { status: 'PAID' }
-      }),
-      prisma.transactionLog.create({
-        data: {
-          gameSessionId: paymentRequest.gameSessionId,
-          senderId: paymentRequest.targetPlayerId,
-          receiverId: paymentRequest.requesterId,
-          amount: paymentRequest.amount
-        }
-      })
-    ];
+    if (action === 'pay') {
+      // Si el jugador no tiene suficiente dinero, también lo bloqueamos
+      const payerAccount = await prisma.player.findUnique({ where: { id: payerId } });
 
-    await prisma.$transaction(operations);
+      if (!payerAccount || payerAccount.balance < paymentRequest.amount) {
+        return NextResponse.json({ error: 'Insufficient funds' }, { status: 400 });
+      }
 
-    return NextResponse.json({ success: true });
+      const operations = [
+        prisma.player.update({
+          where: { id: paymentRequest.targetPlayerId },
+          data: { balance: { decrement: paymentRequest.amount } }
+        }),
+        prisma.player.update({
+          where: { id: paymentRequest.requesterId },
+          data: { balance: { increment: paymentRequest.amount } }
+        }),
+        prisma.paymentRequest.update({
+          where: { id: requestId },
+          data: { status: 'PAID' }
+        }),
+        prisma.transactionLog.create({
+          data: {
+            gameSessionId: paymentRequest.gameSessionId,
+            senderId: paymentRequest.targetPlayerId,
+            receiverId: paymentRequest.requesterId,
+            amount: paymentRequest.amount
+          }
+        })
+      ];
+
+      await prisma.$transaction(operations);
+
+      return NextResponse.json({ success: true });
+    }
 
   } catch (error) {
     console.error('Error processing payment response:', error);
