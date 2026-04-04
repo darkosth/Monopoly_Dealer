@@ -30,7 +30,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No valid targets found' }, { status: 400 });
     }
 
-    const operations = targets.map(targetId => 
+    const operations = targets.map(targetId =>
       prisma.paymentRequest.create({
         data: {
           amount,
@@ -57,29 +57,33 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const roomCode = searchParams.get('roomCode');
     const playerId = searchParams.get('playerId');
+    const type = searchParams.get('type'); // "incoming" o "outgoing"
 
-    if (!roomCode || !playerId) {
-      return NextResponse.json({ error: 'Params missing' }, { status: 400 });
+    if (!roomCode || !playerId || !type) {
+      return NextResponse.json({ error: 'Missing params (roomCode, playerId, type)' }, { status: 400 });
     }
 
-    const session = await prisma.gameSession.findUnique({
-      where: { roomCode }
-    });
+    const whereClause = {
+      gameSession: { roomCode: roomCode },
+      status: 'PENDING'
+    };
 
-    if (!session) return NextResponse.json({ error: 'Session not found'}, { status: 404 });
+    // Filtro estricto
+    if (type === 'incoming') {
+      whereClause.targetPlayerId = playerId;
+    } else if (type === 'outgoing') {
+      whereClause.requesterId = playerId;
+    } else {
+      return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+    }
 
     const requests = await prisma.paymentRequest.findMany({
-      where: {
-        gameSessionId: session.id,
-        targetPlayerId: playerId,
-        status: 'PENDING'
-      },
+      where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
 
     return NextResponse.json({ requests });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch requests' }, { status: 500 });
   }
 }

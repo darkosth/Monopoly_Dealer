@@ -14,7 +14,7 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
   const fetchRequests = useCallback(async () => {
     if (!roomCode || !currentUserId) return;
     try {
-      const response = await fetch(`/api/payment-request?roomCode=${roomCode}&playerId=${currentUserId}`);
+      const response = await fetch(`/api/payment-request?roomCode=${roomCode}&playerId=${currentUserId}&type=incoming`);
       const data = await response.json();
       if (response.ok) {
         setRequests(data.requests || []);
@@ -51,11 +51,15 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
       const response = await fetch('/api/payment-request/respond', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ requestId, action })
+        body: JSON.stringify({
+          requestId,
+          action,
+          payerId: currentUserId,
+        })
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to process request');
       }
@@ -91,8 +95,8 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
             </span>
           </div>
           <div className="flex gap-2">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               className="bg-green-600 hover:bg-green-700"
               onClick={() => handleRespond(req.id, 'pay')}
               disabled={processingId === req.id}

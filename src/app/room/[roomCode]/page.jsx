@@ -10,6 +10,7 @@ import PaymentModal from '@/components/game/PaymentModal';
 import TransactionHistoryModal from '@/components/game/TransactionHistoryModal';
 import RequestMoneyModal from '@/components/game/RequestMoneyModal';
 import IncomingRequests from '@/components/game/IncomingRequests';
+import OutgoingRequests from '@/components/game/OutgoingRequests'; // NUEVO: Importamos el componente de Tickets
 import { toast } from 'sonner';
 
 export default function RoomPage() {
@@ -19,8 +20,8 @@ export default function RoomPage() {
 
   const { players, currentUserId, setGameData, addPlayer, updatePlayerBalance } = useGameStore();
   const [isLoading, setIsLoading] = useState(true);
-  
-  // NUEVO: Estado para controlar si el modal se muestra o no
+
+  // Estado para controlar si el modal se muestra o no
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -74,7 +75,7 @@ export default function RoomPage() {
           }
         }
       )
-      // 2. NUEVO: Escuchamos cuando se crea una nueva transacción
+      // 2. Escuchamos cuando se crea una nueva transacción
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'TransactionLog' },
@@ -83,10 +84,10 @@ export default function RoomPage() {
 
           // Si el jugador de este celular es quien recibe el dinero...
           if (transaction.receiverId === currentUserId) {
-            
+
             // Un truco Pro: Usamos getState() para leer Zustand sin romper el useEffect
             const currentPlayers = useGameStore.getState().players;
-            
+
             // Buscamos quién fue el buen samaritano que nos pagó
             const sender = currentPlayers.find(p => p.id === transaction.senderId);
             const senderName = sender ? sender.name : 'The Bank';
@@ -120,25 +121,25 @@ export default function RoomPage() {
           <h1 className="text-2xl font-bold text-slate-800">Room: {roomCode}</h1>
           <p className="text-sm text-slate-500">Playing as: {me?.name} {isHost && '(Host)'}</p>
         </div>
-        
-        {/* NUEVO: Contenedor de botones de acción */}
+
+        {/* Contenedor de botones de acción */}
         <div className="flex gap-2 w-full md:w-auto flex-wrap justify-end">
-          <Button 
-            onClick={() => setIsRequestModalOpen(true)} 
-            variant="outline" 
+          <Button
+            onClick={() => setIsRequestModalOpen(true)}
+            variant="outline"
             className="w-full md:w-auto text-blue-700 border-blue-300 hover:bg-blue-50"
           >
             📥 Request Money
           </Button>
-          <Button 
-            onClick={() => setIsHistoryModalOpen(true)} 
-            variant="outline" 
+          <Button
+            onClick={() => setIsHistoryModalOpen(true)}
+            variant="outline"
             className="w-full md:w-auto text-slate-700 border-slate-300"
           >
             📋 History
           </Button>
-          <Button 
-            onClick={() => setIsPaymentModalOpen(true)} 
+          <Button
+            onClick={() => setIsPaymentModalOpen(true)}
             className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white"
           >
             💸 Pay
@@ -152,8 +153,11 @@ export default function RoomPage() {
       {/* Peticiones de Dinero Entrantes */}
       <IncomingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
+      {/* NUEVO: El "Ticket" de seguimiento de dinero que ME deben */}
+      <OutgoingRequests roomCode={roomCode} currentUserId={currentUserId} />
+
       {/* Grid de Jugadores */}
-      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
         {players.map((player) => (
           <Card key={player.id} className={player.id === currentUserId ? 'border-2 border-blue-500 shadow-md' : ''}>
             <CardHeader className="pb-2">
@@ -170,8 +174,8 @@ export default function RoomPage() {
         ))}
       </div>
 
-      {/* NUEVO: Aquí inyectamos el modal para que se dibuje por encima de la pantalla */}
-      <PaymentModal 
+      {/* Modales inyectados por encima de la pantalla */}
+      <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         roomCode={roomCode}
@@ -179,14 +183,14 @@ export default function RoomPage() {
         players={players}
       />
 
-      <TransactionHistoryModal 
+      <TransactionHistoryModal
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
         roomCode={roomCode}
         players={players}
       />
 
-      <RequestMoneyModal 
+      <RequestMoneyModal
         isOpen={isRequestModalOpen}
         onClose={() => setIsRequestModalOpen(false)}
         roomCode={roomCode}
