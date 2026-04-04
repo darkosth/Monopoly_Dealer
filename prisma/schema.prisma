@@ -1,13 +1,46 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+}
+
+// Tabla para la sala de juego
+model GameSession {
+  id                String            @id @default(uuid())
+  roomCode          String            @unique
+  isActive          Boolean           @default(true)
+  freeParkingAmount Int               @default(0) // El pozo acumulado opcional
+  createdAt         DateTime          @default(now())
+  
+  // Relaciones
+  players           Player[]
+  transactions      TransactionLog[]
+}
+
+// Tabla para los jugadores de la partida
+model Player {
+  id            String      @id @default(uuid())
+  name          String
+  balance       Int         @default(1500) // Dinero inicial clásico
+  isHost        Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  
+  // Llave foránea para vincular al jugador con su sala
+  gameSessionId String
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+}
+
+// Tabla para el historial inmutable de movimientos de dinero
+model TransactionLog {
+  id            String      @id @default(uuid())
+  amount        Int
+  senderId      String?     // Puede ser nulo si el dinero viene del Banco
+  receiverId    String?     // Puede ser nulo si el dinero va al Banco
+  timestamp     DateTime    @default(now())
+  
+  // Llave foránea
+  gameSessionId String
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
 }
