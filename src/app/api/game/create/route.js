@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// ¡LA CURA MÁGICA PARA VERCEL!
+export const dynamic = 'force-dynamic';
+
 // Función auxiliar para generar un código de 4 letras/números (ej. "K9X2")
 const generateRoomCode = () => {
   return Math.random().toString(36).substring(2, 6).toUpperCase();

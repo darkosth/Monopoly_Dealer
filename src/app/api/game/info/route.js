@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// ¡LA CURA MÁGICA PARA VERCEL!
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
     // Obtenemos el código de la URL (ej. ?roomCode=X7B9)
