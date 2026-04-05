@@ -47,9 +47,9 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
         throw new Error(data.error || 'Something went wrong. Please try again.');
       }
 
-      // Mostrar notificación de éxito
+      // Mostrar notificación de éxito con estilo
       const receiverName = isBank ? (isBankTax ? 'Taxes (Free Parking)' : 'the Bank') : players.find(p => p.id === receiverId)?.name;
-      toast.success("Payment Successful", {
+      toast.success("Payment Successful 💸", {
         description: `You paid $${amount} to ${receiverName}.`,
       });
 
@@ -59,7 +59,7 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
       onClose();
 
     } catch (error) {
-      toast.error("Payment Failed", {
+      toast.error("Payment Failed ❌", {
         description: error.message,
       });
     } finally {
@@ -69,26 +69,28 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] glass-panel border-2 border-neon-cyan/50 text-white rounded-3xl shadow-[0_0_30px_rgba(0,209,255,0.2)]">
         <DialogHeader>
-          <DialogTitle>Make a Payment</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-black text-neon-cyan tracking-wide text-glow">
+            Make a Payment
+          </DialogTitle>
+          <DialogDescription className="text-slate-300 font-medium">
             Select who you want to pay and enter the amount.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handlePayment} className="grid gap-4 py-4">
+        <form onSubmit={handlePayment} className="grid gap-5 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Pay to:</label>
+            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Pay to:</label>
             <Select value={receiverId} onValueChange={setReceiverId} required>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white/5 border-white/20 text-white rounded-2xl h-14 focus:ring-neon-cyan transition-all">
                 <SelectValue placeholder="Select a player or Bank" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bank_property" className="font-bold text-slate-700">🏦 Bank (Buy Property/House)</SelectItem>
-                <SelectItem value="bank_tax" className="font-bold text-orange-600">🏛️ Bank (Taxes & Fines 👉 Free Parking)</SelectItem>
+              <SelectContent className="glass-panel border-white/20 text-white rounded-2xl">
+                <SelectItem value="bank_property" className="font-bold text-neon-cyan focus:bg-white/10 focus:text-neon-cyan">🏦 Bank (Buy Property/House)</SelectItem>
+                <SelectItem value="bank_tax" className="font-bold text-neon-gold focus:bg-white/10 focus:text-neon-gold">🏛️ Bank (Taxes 👉 Free Parking)</SelectItem>
                 {otherPlayers.map((player) => (
-                  <SelectItem key={player.id} value={player.id}>
+                  <SelectItem key={player.id} value={player.id} className="focus:bg-white/10 focus:text-white">
                     👤 {player.name}
                   </SelectItem>
                 ))}
@@ -97,28 +99,29 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Amount ($):</label>
-            <Input 
-              type="number" 
-              placeholder="e.g. 500" 
-              value={amount} 
+            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Amount ($):</label>
+            <Input
+              type="number"
+              placeholder="e.g. 500"
+              value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="1"
               required
-              className={isInsufficient ? "border-red-500 text-red-600 focus-visible:ring-red-500" : ""}
+              className={`bg-white/5 border-white/20 text-white rounded-2xl h-16 text-3xl text-center font-black tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-neon-cyan ${isInsufficient ? "!border-neon-red !text-neon-red !ring-neon-red shadow-[0_0_10px_rgba(255,0,85,0.3)]" : ""
+                }`}
             />
             {isInsufficient && (
-              <p className="text-red-500 text-xs mt-1">
+              <p className="text-neon-red text-xs font-bold uppercase tracking-wider mt-2 text-center animate-pulse">
                 Insufficient funds (Max: ${currentBalance})
               </p>
             )}
           </div>
 
-          <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <DialogFooter className="mt-6 flex gap-3 sm:justify-between">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 rounded-2xl border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all h-12">
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || isInsufficient}>
+            <Button type="submit" disabled={isLoading || isInsufficient} className="w-full sm:w-1/2 rounded-2xl bg-neon-green text-black font-black hover:bg-neon-green/90 shadow-[0_0_15px_rgba(0,255,135,0.4)] active:scale-95 transition-all h-12 text-lg">
               {isLoading ? 'Processing...' : 'Send Money'}
             </Button>
           </DialogFooter>

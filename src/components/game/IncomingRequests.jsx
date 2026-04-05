@@ -65,7 +65,9 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
       }
 
       if (action === 'pay') {
-        toast.success('Payment Sent', { description: 'You have paid the request.' });
+        toast.success('Payment Sent 💸', { description: 'You have paid the request.' });
+      } else {
+        toast.info('Request Rejected ❌', { description: 'You declined the payment.' });
       }
 
       // Refrescamos la lista para quitarla
@@ -85,20 +87,26 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
   if (requests.length === 0) return null;
 
   return (
-    <div className="max-w-4xl mx-auto mb-4 space-y-2">
+    <div className="max-w-4xl mx-auto mb-6 space-y-4">
       {requests.map(req => (
-        <div key={req.id} className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex justify-between items-center shadow-sm animate-in slide-in-from-top-2">
-          <div>
-            <span className="font-bold text-yellow-800">Payment Request: </span>
-            <span className="text-yellow-900">
-              {getRequesterName(req.requesterId)} is asking you for <span className="font-black text-lg">${req.amount}</span>.
+        <div
+          key={req.id}
+          className="glass-panel border-2 border-neon-gold/50 rounded-3xl p-5 flex flex-col md:flex-row justify-between items-center shadow-[0_0_20px_rgba(255,215,0,0.15)] animate-in slide-in-from-top-4 fade-in duration-300 gap-4"
+        >
+          <div className="text-center md:text-left w-full md:w-auto">
+            <span className="text-xs font-black uppercase tracking-widest text-neon-gold block mb-1">
+              🔔 Payment Request
+            </span>
+            <span className="text-slate-300 font-medium">
+              <strong className="text-white text-lg">{getRequesterName(req.requesterId)}</strong> is asking you for <span className="font-black text-2xl text-neon-cyan text-glow ml-1">${req.amount}</span>
             </span>
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex gap-3 w-full md:w-auto">
             <Button
               size="sm"
-              variant="ghost"
-              className="bg-red-600 hover:bg-red-100"
+              variant="outline"
+              className="flex-1 md:flex-none rounded-xl border-2 border-neon-red text-neon-red hover:bg-neon-red/10 active:scale-95 transition-all h-12 px-6"
               onClick={() => handleRespond(req.id, 'reject')}
               disabled={processingId === req.id}
             >
@@ -106,7 +114,7 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
             </Button>
             <Button
               size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              className="flex-1 md:flex-none rounded-xl bg-neon-green text-black font-black hover:bg-neon-green/90 shadow-[0_0_15px_rgba(0,255,135,0.4)] active:scale-95 transition-all h-12 px-6"
               onClick={() => handleRespond(req.id, 'pay')}
               disabled={processingId === req.id}
             >

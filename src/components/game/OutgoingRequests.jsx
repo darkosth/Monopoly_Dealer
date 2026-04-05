@@ -4,9 +4,9 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button'; // NUEVO: Importamos Button
+import { Button } from '@/components/ui/button';
 import { useGameStore } from '@/store/useGameStore';
-import { toast } from 'sonner'; // NUEVO: Importamos toast para errores
+import { toast } from 'sonner';
 
 export default function OutgoingRequests({ roomCode, currentUserId }) {
     const [outboundRequests, setOutboundRequests] = useState([]);
@@ -45,7 +45,7 @@ export default function OutgoingRequests({ roomCode, currentUserId }) {
         };
     }, [fetchOutbound, currentUserId]);
 
-    // NUEVO: Función para cerrar manualmente los tickets rechazados
+    // Función para cerrar manualmente los tickets rechazados
     const handleCloseTicket = async (requestId) => {
         try {
             const response = await fetch('/api/payment-request/close', {
@@ -68,50 +68,55 @@ export default function OutgoingRequests({ roomCode, currentUserId }) {
     const getTargetName = (id) => players.find(p => p.id === id)?.name || 'Unknown';
 
     return (
-        <Card className="max-w-4xl mx-auto mb-6 border-blue-200 bg-blue-50/30">
-            <CardHeader className="py-3">
-                <CardTitle className="text-sm font-bold text-blue-800 flex items-center gap-2">
-                    📋 Your Active Requests (Waiting for payment)
+        <Card className="max-w-4xl mx-auto mb-8 glass-panel border-2 border-neon-cyan/30 shadow-[0_0_15px_rgba(0,209,255,0.1)] rounded-3xl overflow-hidden">
+            <CardHeader className="py-3 bg-neon-cyan/10 border-b border-neon-cyan/20">
+                <CardTitle className="text-sm font-black text-neon-cyan uppercase tracking-widest flex items-center gap-2 text-glow">
+                    📋 Active Requests (Pending)
                 </CardTitle>
             </CardHeader>
-            <CardContent className="py-2">
-                <div className="flex flex-wrap gap-2">
+            <CardContent className="py-4">
+                <div className="flex flex-wrap gap-3">
                     {outboundRequests.map(req => (
                         <div
                             key={req.id}
-                            // NUEVO: Cambiamos el color del borde y fondo si está rechazado
-                            className={`border rounded-md px-3 py-2 flex items-center gap-3 shadow-sm ${req.status === 'REJECTED' ? 'bg-red-50 border-red-200' : 'bg-white border-blue-200'
+                            // Cambiamos el color del borde, fondo y sombras si está rechazado
+                            className={`border-2 rounded-2xl px-4 py-2 flex items-center gap-3 backdrop-blur-md transition-all ${req.status === 'REJECTED'
+                                    ? 'bg-neon-red/10 border-neon-red shadow-[0_0_10px_rgba(255,0,85,0.2)]'
+                                    : 'bg-white/5 border-neon-cyan/50 hover:bg-white/10'
                                 }`}
                         >
-                            <span className="text-sm font-medium text-slate-700">
+                            <span className="text-sm font-bold text-white">
                                 {getTargetName(req.targetPlayerId)}
                             </span>
 
-                            {/* NUEVO: Cambiamos el color de la cantidad a rojo si está rechazado */}
+                            {/* Cambiamos el color de la cantidad a rojo si está rechazado */}
                             <Badge
-                                variant={req.status === 'REJECTED' ? 'destructive' : 'secondary'}
-                                className={req.status !== 'REJECTED' ? 'bg-blue-100 text-blue-700 hover:bg-blue-100' : ''}
+                                variant="outline"
+                                className={`font-black text-sm px-2 py-1 ${req.status === 'REJECTED'
+                                        ? 'bg-neon-red/20 text-neon-red border-none'
+                                        : 'bg-neon-cyan/20 text-neon-cyan border-none'
+                                    }`}
                             >
                                 ${req.amount}
                             </Badge>
 
-                            {/* NUEVO: Lógica visual dependiendo del estado */}
+                            {/* Lógica visual dependiendo del estado */}
                             {req.status === 'REJECTED' ? (
-                                <div className="flex items-center gap-1 pl-2 border-l border-red-200 ml-1">
-                                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">
+                                <div className="flex items-center gap-1 pl-2 border-l border-neon-red/50 ml-1">
+                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-widest text-glow">
                                         Rejected
                                     </span>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full ml-1"
+                                        className="h-7 w-7 text-neon-red hover:text-white hover:bg-neon-red/50 rounded-full ml-1 transition-all active:scale-95"
                                         onClick={() => handleCloseTicket(req.id)}
                                     >
                                         ✕
                                     </Button>
                                 </div>
                             ) : (
-                                <span className="text-[10px] animate-pulse text-blue-500 font-bold uppercase ml-2">
+                                <span className="text-[10px] animate-pulse text-neon-cyan font-black uppercase tracking-widest ml-2 text-glow">
                                     Pending
                                 </span>
                             )}

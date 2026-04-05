@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
-
 // Pequeña función para el tiempo relativo (ej: "hace 2 min")
 function timeAgo(dateString) {
   const date = new Date(dateString);
@@ -26,7 +25,7 @@ export default function TransactionHistoryModal({ isOpen, onClose, roomCode, pla
     if (isOpen) {
       fetchHistory();
     }
-  }, [isOpen]);
+  }, [isOpen, roomCode]);
 
   const fetchHistory = async () => {
     setIsLoading(true);
@@ -51,30 +50,44 @@ export default function TransactionHistoryModal({ isOpen, onClose, roomCode, pla
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Audit Trail</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[500px] h-[80vh] flex flex-col glass-panel border-2 border-white/20 text-white rounded-3xl shadow-[0_0_40px_rgba(255,255,255,0.1)]">
+        <DialogHeader className="pb-4 border-b border-white/10">
+          <DialogTitle className="text-2xl font-black text-white tracking-widest text-glow">
+            📋 AUDIT TRAIL
+          </DialogTitle>
+          <DialogDescription className="text-slate-300 font-medium">
             Complete history of transactions in this room.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto mt-4 px-1">
+        <div className="flex-1 overflow-y-auto mt-4 px-1 custom-scrollbar">
           {isLoading ? (
-            <div className="text-center text-slate-500 py-8">Loading history...</div>
+            <div className="text-center text-neon-cyan font-black tracking-widest py-10 animate-pulse text-glow">
+              LOADING HISTORY...
+            </div>
           ) : transactions.length === 0 ? (
-            <div className="text-center text-slate-500 py-8">No transactions yet.</div>
+            <div className="text-center text-slate-400 font-medium py-10 uppercase tracking-widest">
+              No transactions yet.
+            </div>
           ) : (
-            <div className="space-y-4">
-              {transactions.map((tx) => (
-                <div key={tx.id} className="bg-slate-50 p-3 rounded-lg border flex justify-between items-center text-sm">
+            <div className="space-y-3">
+              {transactions.map((tx, index) => (
+                <div
+                  key={tx.id}
+                  className="bg-white/5 p-4 rounded-2xl border border-white/10 flex justify-between items-center transition-all hover:bg-white/10 animate-in slide-in-from-bottom-2 fade-in duration-300"
+                  style={{ animationDelay: `${index * 50}ms` }} // Efecto de cascada al cargar
+                >
                   <div className="flex flex-col">
-                    <span className="font-medium text-slate-700">
-                      {getPlayerName(tx.senderId)} &rarr; {getPlayerName(tx.receiverId)}
+                    <span className="font-bold text-white text-base flex items-center gap-2">
+                      {getPlayerName(tx.senderId)}
+                      <span className="text-neon-cyan text-glow">➔</span>
+                      {getPlayerName(tx.receiverId)}
                     </span>
-                    <span className="text-xs text-slate-400 mt-1">{timeAgo(tx.timestamp)}</span>
+                    <span className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">
+                      {timeAgo(tx.timestamp)}
+                    </span>
                   </div>
-                  <div className="text-base font-bold text-green-600">
+                  <div className="text-2xl font-black text-neon-green text-glow tracking-wide">
                     ${tx.amount}
                   </div>
                 </div>

@@ -37,7 +37,7 @@ export default function JoinGameFlow() {
             setRoomPlayers(data.players);
             setStep(1); // Pasamos a elegir si somos nuevos o existentes
         } catch (error) {
-            toast.error("Room Error", { description: error.message });
+            toast.error("Room Error ❌", { description: error.message });
         } finally {
             setIsLoading(false);
         }
@@ -69,59 +69,59 @@ export default function JoinGameFlow() {
 
             // ¡Login Exitoso! Guardamos en LocalStorage y entramos
             localStorage.setItem('monopolyUserId', data.player.id);
-            toast.success(action === 'new' ? "Account Created!" : "Welcome back!");
+            toast.success(action === 'new' ? "Account Created! 🚀" : "Welcome back! 🎮");
             router.push(`/room/${data.gameSession.roomCode}`);
 
         } catch (error) {
-            toast.error("Login Failed", { description: error.message });
+            toast.error("Login Failed ❌", { description: error.message });
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto shadow-lg">
-            <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-black text-slate-800">Join Game</CardTitle>
-                <CardDescription>Enter a room code to connect</CardDescription>
+        <Card className="w-full max-w-md mx-auto glass-panel border-2 border-neon-cyan/50 shadow-[0_0_30px_rgba(0,209,255,0.15)] rounded-3xl overflow-hidden mt-8">
+            <CardHeader className="text-center pb-4">
+                <CardTitle className="text-3xl font-black text-neon-cyan tracking-widest text-glow">JOIN GAME</CardTitle>
+                <CardDescription className="text-slate-300 font-medium">Enter a room code to connect</CardDescription>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="pt-2">
                 {/* FASE 0: INGRESAR CÓDIGO */}
                 {step === 0 && (
-                    <form onSubmit={handleCheckRoom} className="space-y-4">
+                    <form onSubmit={handleCheckRoom} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Room Code</label>
+                            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Room Code</label>
                             <Input
                                 placeholder="e.g. ABCD"
                                 value={roomCode}
                                 onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                                 maxLength={6}
-                                className="text-center text-xl tracking-widest font-bold uppercase"
+                                className="bg-white/5 border-white/20 text-white rounded-2xl h-16 text-center text-3xl tracking-[0.3em] font-black uppercase focus-visible:ring-neon-cyan transition-all"
                                 required
                             />
                         </div>
-                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
-                            {isLoading ? 'Searching...' : 'Find Room'}
+                        <Button type="submit" className="w-full rounded-2xl h-14 bg-neon-cyan text-black font-black hover:bg-neon-cyan/90 shadow-[0_0_15px_rgba(0,209,255,0.4)] active:scale-95 transition-all text-lg" disabled={isLoading}>
+                            {isLoading ? 'SEARCHING...' : 'FIND ROOM'}
                         </Button>
                     </form>
                 )}
 
                 {/* FASE 1: BIFURCACIÓN */}
                 {step === 1 && (
-                    <div className="space-y-4 animate-in fade-in zoom-in-95">
+                    <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
                         <div className="text-center mb-6">
-                            <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                                Room Found
+                            <span className="bg-neon-green/20 text-neon-green border border-neon-green/50 text-xs font-black px-4 py-2 rounded-full uppercase tracking-widest shadow-[0_0_10px_rgba(0,255,135,0.2)]">
+                                ✔ Room Found
                             </span>
                         </div>
-                        <Button onClick={() => setStep(2)} className="w-full h-14 text-lg bg-blue-600 hover:bg-blue-700">
-                            👤 New Player
+                        <Button onClick={() => setStep(2)} className="w-full h-14 text-lg rounded-2xl bg-neon-cyan text-black font-black hover:bg-neon-cyan/90 shadow-[0_0_15px_rgba(0,209,255,0.4)] active:scale-95 transition-all">
+                            👤 NEW PLAYER
                         </Button>
-                        <Button onClick={() => setStep(3)} variant="outline" className="w-full h-14 text-lg border-2">
-                            🔄 Reconnect (Existing)
+                        <Button onClick={() => setStep(3)} variant="outline" className="w-full h-14 text-lg rounded-2xl border-2 border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all">
+                            🔄 RECONNECT (EXISTING)
                         </Button>
-                        <Button variant="ghost" onClick={() => setStep(0)} className="w-full text-slate-400 mt-4">
+                        <Button variant="ghost" onClick={() => setStep(0)} className="w-full text-slate-400 mt-2 hover:bg-transparent hover:text-white transition-all">
                             ← Back
                         </Button>
                     </div>
@@ -129,18 +129,19 @@ export default function JoinGameFlow() {
 
                 {/* FASE 2: JUGADOR NUEVO */}
                 {step === 2 && (
-                    <form onSubmit={(e) => handleJoin(e, 'new')} className="space-y-4 animate-in slide-in-from-right-4">
+                    <form onSubmit={(e) => handleJoin(e, 'new')} className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Your Name</label>
+                            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Your Name</label>
                             <Input
                                 placeholder="e.g. Darkosth"
                                 value={playerName}
                                 onChange={(e) => setPlayerName(e.target.value)}
+                                className="bg-white/5 border-white/20 text-white rounded-2xl h-14 focus-visible:ring-neon-cyan transition-all text-lg font-bold"
                                 required
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Create a 4-Digit PIN</label>
+                            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Create a 4-Digit PIN</label>
                             <Input
                                 type="password"
                                 inputMode="numeric"
@@ -149,15 +150,17 @@ export default function JoinGameFlow() {
                                 placeholder="****"
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value)}
-                                className="text-center text-2xl tracking-widest"
+                                className="bg-white/5 border-white/20 text-white rounded-2xl h-16 text-center text-3xl tracking-[0.5em] focus-visible:ring-neon-cyan transition-all font-black"
                                 required
                             />
-                            <p className="text-xs text-slate-500 text-center">Don't forget it! You'll need it to reconnect.</p>
+                            <p className="text-xs text-slate-400 text-center font-medium mt-2">Don't forget it! You'll need it to reconnect.</p>
                         </div>
-                        <div className="flex gap-2 mt-6">
-                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-1/3">Back</Button>
-                            <Button type="submit" className="w-2/3 bg-blue-600" disabled={isLoading}>
-                                {isLoading ? 'Joining...' : 'Join Game'}
+                        <div className="flex gap-3 mt-6">
+                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-1/3 rounded-2xl border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all h-14">
+                                Back
+                            </Button>
+                            <Button type="submit" className="w-2/3 rounded-2xl bg-neon-cyan text-black font-black hover:bg-neon-cyan/90 shadow-[0_0_15px_rgba(0,209,255,0.4)] active:scale-95 transition-all h-14 text-lg" disabled={isLoading}>
+                                {isLoading ? 'JOINING...' : 'JOIN GAME'}
                             </Button>
                         </div>
                     </form>
@@ -165,22 +168,24 @@ export default function JoinGameFlow() {
 
                 {/* FASE 3: RECONECTAR */}
                 {step === 3 && (
-                    <form onSubmit={(e) => handleJoin(e, 'reconnect')} className="space-y-4 animate-in slide-in-from-left-4">
+                    <form onSubmit={(e) => handleJoin(e, 'reconnect')} className="space-y-6 animate-in slide-in-from-left-4 duration-300">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Who are you?</label>
+                            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Who are you?</label>
                             <Select value={selectedPlayerId} onValueChange={setSelectedPlayerId} required>
-                                <SelectTrigger>
+                                <SelectTrigger className="bg-white/5 border-white/20 text-white rounded-2xl h-14 focus:ring-neon-cyan transition-all text-lg font-bold">
                                     <SelectValue placeholder="Select your name" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="glass-panel border-white/20 text-white rounded-2xl">
                                     {roomPlayers.map((p) => (
-                                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                        <SelectItem key={p.id} value={p.id} className="focus:bg-white/10 focus:text-neon-cyan font-bold text-lg">
+                                            {p.name}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Enter your PIN</label>
+                            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Enter your PIN</label>
                             <Input
                                 type="password"
                                 inputMode="numeric"
@@ -189,14 +194,16 @@ export default function JoinGameFlow() {
                                 placeholder="****"
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value)}
-                                className="text-center text-2xl tracking-widest"
+                                className="bg-white/5 border-white/20 text-white rounded-2xl h-16 text-center text-3xl tracking-[0.5em] focus-visible:ring-neon-cyan transition-all font-black"
                                 required
                             />
                         </div>
-                        <div className="flex gap-2 mt-6">
-                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-1/3">Back</Button>
-                            <Button type="submit" className="w-2/3 bg-green-600 hover:bg-green-700" disabled={isLoading}>
-                                {isLoading ? 'Verifying...' : 'Reconnect'}
+                        <div className="flex gap-3 mt-6">
+                            <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-1/3 rounded-2xl border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all h-14">
+                                Back
+                            </Button>
+                            <Button type="submit" className="w-2/3 rounded-2xl bg-neon-green text-black font-black hover:bg-neon-green/90 shadow-[0_0_15px_rgba(0,255,135,0.4)] active:scale-95 transition-all h-14 text-lg" disabled={isLoading}>
+                                {isLoading ? 'VERIFYING...' : 'RECONNECT'}
                             </Button>
                         </div>
                     </form>

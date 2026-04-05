@@ -65,7 +65,6 @@ export default function RoomPage() {
 
     const channel = supabase
       .channel(`room-${roomCode}`)
-      // 1. Escuchamos cambios en los jugadores
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'Player' },
@@ -77,46 +76,35 @@ export default function RoomPage() {
             updatePlayerBalance(payload.new.id, payload.new.balance);
           }
           if (payload.eventType === 'DELETE') {
-            // Si nos borran a NOSOTROS (sea por Kick o porque el Host borró la sala entera)
             if (payload.old.id === currentUserId) {
               toast.error("You have been removed from the room.");
               localStorage.removeItem('monopolyUserId');
               router.push('/');
             } else {
-              // Recargar la página o sacar al jugador localmente
-              window.location.reload(); // Simple manera de refrescar si borran a otro
+              window.location.reload();
             }
           }
         }
       )
-      // Escuchamos actualizaciones globales de la sesión (ej. Free Parking)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'GameSession' },
         (payload) => {
-           if (payload.new && payload.new.roomCode === roomCode) {
-             updateFreeParking(payload.new.freeParkingAmount);
-           }
+          if (payload.new && payload.new.roomCode === roomCode) {
+            updateFreeParking(payload.new.freeParkingAmount);
+          }
         }
       )
-      // Escuchamos cuando se crea una nueva transacción
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'TransactionLog' },
         (payload) => {
           const transaction = payload.new;
-
-          // Si el jugador de este celular es quien recibe el dinero...
           if (transaction.receiverId === currentUserId) {
-
-            // Un truco Pro: Usamos getState() para leer Zustand sin romper el useEffect
             const currentPlayers = useGameStore.getState().players;
-
-            // Buscamos quién fue el buen samaritano que nos pagó
             const sender = currentPlayers.find(p => p.id === transaction.senderId);
             const senderName = sender ? sender.name : 'The Bank';
 
-            // ¡Lanzamos la notificación verde!
             toast.success("Dinero Recibido 🤑", {
               description: `${senderName} te ha enviado $${transaction.amount}.`,
             });
@@ -131,12 +119,12 @@ export default function RoomPage() {
   }, [roomCode, isLoading, addPlayer, updatePlayerBalance, currentUserId]);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading game...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-neon-cyan font-black text-2xl animate-pulse">Loading Game...</div>;
   }
 
   const handleManagePlayer = async (targetId, action, targetName) => {
     if (action === 'kick' || action === 'declare_bankruptcy') {
-      const confirmMsg = action === 'kick' 
+      const confirmMsg = action === 'kick'
         ? `Are you sure you want to KICK ${targetName} from the game?`
         : `Are you sure you want to BANKRUPT ${targetName}? Their balance will be set to $0.`;
       if (!window.confirm(confirmMsg)) return;
@@ -178,37 +166,45 @@ export default function RoomPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4">
-      {/* Header de la Sala */}
-      <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-lg shadow-sm gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Room: {roomCode}</h1>
-          <p className="text-sm text-slate-500">Playing as: {me?.name} {isHost && '(Host)'}</p>
+    // Quitamos bg-slate-100 para que se vea el fondo animado del body
+    <div className="min-h-screen p-4 sm:p-6 text-white font-sans overflow-hidden">
+
+      {/* Header de la Sala - Ahora es un panel de cristal */}
+      <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 glass-panel p-5 rounded-3xl gap-5">
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl font-black text-white tracking-widest text-glow">ROOM: {roomCode}</h1>
+          <p className="text-sm text-slate-300 font-medium mt-1">
+            Playing as: <span className="text-neon-cyan font-bold">{me?.name}</span> {isHost && <span className="text-neon-gold"> (Banker)</span>}
+          </p>
         </div>
 
-        {/* Contenedor de botones de acción */}
-        <div className="flex gap-2 w-full md:w-auto flex-wrap justify-end">
+        {/* Contenedor de botones de acción - Animaciones "Bouncy" */}
+        <div className="flex gap-3 w-full md:w-auto flex-wrap justify-center md:justify-end">
           <Button
             onClick={() => setIsRequestModalOpen(true)}
             variant="outline"
-            className="w-full md:w-auto text-blue-700 border-blue-300 hover:bg-blue-50"
+            className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 transition-all active:scale-95"
           >
-            📥 Request Money
+            📥 Request
           </Button>
           <Button
             onClick={() => setIsHistoryModalOpen(true)}
             variant="outline"
-            className="w-full md:w-auto text-slate-700 border-slate-300"
+            className="w-[45%] md:w-auto rounded-2xl border-2 border-white/20 text-white hover:bg-white/10 transition-all active:scale-95"
           >
             📋 History
           </Button>
           <Button
             onClick={() => setIsPaymentModalOpen(true)}
-            className="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white"
+            className="w-[45%] md:w-auto rounded-2xl bg-neon-green text-black font-black hover:bg-neon-green/90 transition-all active:scale-95 shadow-[0_0_15px_rgba(0,255,135,0.4)]"
           >
             💸 Pay
           </Button>
-          <Button variant="outline" onClick={handleLeave} className="w-full md:w-auto border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+          <Button
+            variant="outline"
+            onClick={handleLeave}
+            className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-red text-neon-red hover:bg-neon-red/10 transition-all active:scale-95"
+          >
             {isHost ? 'Close Room' : 'Leave'}
           </Button>
         </div>
@@ -220,67 +216,81 @@ export default function RoomPage() {
       {/* Peticiones de Dinero Entrantes */}
       <IncomingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
-      {/* NUEVO: El "Ticket" de seguimiento de dinero que ME deben */}
+      {/* El "Ticket" de seguimiento de dinero que ME deben */}
       <OutgoingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
-      {/* Bote de Free Parking visible para todos */}
-      <div className="max-w-4xl mx-auto mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-4 text-white shadow-md flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl" role="img" aria-label="car">🚗</span>
+      {/* Bote de Free Parking - Efecto Neón Dorado */}
+      <div className="max-w-4xl mx-auto mt-6 bg-black/40 backdrop-blur-md border-2 border-neon-gold/50 rounded-3xl p-5 text-white shadow-[0_0_20px_rgba(255,215,0,0.2)] flex items-center justify-between transition-all transform hover:scale-[1.01]">
+        <div className="flex items-center gap-4">
+          <div className="bg-neon-gold/20 p-3 rounded-2xl border border-neon-gold/50">
+            <span className="text-4xl" role="img" aria-label="car">🚗</span>
+          </div>
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-blue-100">Free Parking Jackpot</h2>
-            <p className="text-3xl font-black">${freeParkingAmount}</p>
+            <h2 className="text-xs font-black uppercase tracking-widest text-neon-gold">Free Parking Jackpot</h2>
+            <p className="text-4xl font-black text-glow text-white">${freeParkingAmount}</p>
           </div>
         </div>
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-medium text-blue-100">Lands in Free Parking to collect!</p>
+          <p className="text-sm font-bold text-slate-300">Land in Free Parking to collect!</p>
         </div>
       </div>
 
       {/* Grid de Jugadores */}
-      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-5 mt-8">
         {players.map((player) => {
           const isBankrupt = player.balance === 0;
+          const isMe = player.id === currentUserId;
 
           return (
-          <Card key={player.id} className={`${player.id === currentUserId ? 'border-2 border-blue-500 shadow-md' : ''} ${isBankrupt ? 'opacity-50 grayscale' : ''}`}>
-            <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className={`text-lg truncate ${isBankrupt ? 'line-through text-slate-500' : ''}`}>
-                {player.name} {player.id === currentUserId && <span className="text-blue-500 text-sm">(You)</span>}
-              </CardTitle>
-              {isHost && player.id !== currentUserId && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <Settings className="h-4 w-4 text-slate-500" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleManagePlayer(player.id, 'reset_pin', player.name)}>
-                      🔄 Reset PIN (0000)
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-orange-600" onClick={() => handleManagePlayer(player.id, 'declare_bankruptcy', player.name)}>
-                      📉 Declare Bankruptcy
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600 font-bold" onClick={() => handleManagePlayer(player.id, 'kick', player.name)}>
-                      🚫 Kick Player
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-black ${player.balance < 0 ? 'text-red-600' : player.balance === 0 ? 'text-slate-500' : 'text-green-600'}`}>
-                ${player.balance}
-              </div>
-              {isBankrupt && <div className="text-xs font-bold text-red-600 uppercase mt-1">Bankrupt</div>}
-            </CardContent>
-          </Card>
-        )})}
+            <Card
+              key={player.id}
+              // Inyectamos Glassmorphism y bordes dinámicos
+              className={`glass-panel rounded-3xl border-2 transition-all duration-300 ${isMe ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,209,255,0.3)]' : 'border-white/10'
+                } ${isBankrupt ? 'opacity-50 grayscale border-neon-red/50' : ''}`}
+            >
+              <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+                <CardTitle className={`text-xl truncate font-bold ${isBankrupt ? 'line-through text-slate-500' : 'text-white'}`}>
+                  {player.name} {isMe && <span className="text-neon-cyan text-sm ml-1">(You)</span>}
+                </CardTitle>
+
+                {isHost && !isMe && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-white/10 rounded-full transition-all">
+                        <span className="sr-only">Open menu</span>
+                        <Settings className="h-5 w-5 text-slate-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="glass-panel border-white/20 text-white">
+                      <DropdownMenuItem className="hover:bg-white/10 focus:bg-white/10" onClick={() => handleManagePlayer(player.id, 'reset_pin', player.name)}>
+                        🔄 Reset PIN (0000)
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-neon-gold hover:bg-neon-gold/10 focus:bg-neon-gold/10" onClick={() => handleManagePlayer(player.id, 'declare_bankruptcy', player.name)}>
+                        📉 Declare Bankruptcy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-neon-red font-bold hover:bg-neon-red/10 focus:bg-neon-red/10" onClick={() => handleManagePlayer(player.id, 'kick', player.name)}>
+                        🚫 Kick Player
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </CardHeader>
+              <CardContent>
+                {/* Saldo con resplandor (text-glow) */}
+                <div className={`text-4xl font-black text-glow tracking-wide ${player.balance < 0 ? 'text-neon-red' :
+                    isBankrupt ? 'text-slate-500' :
+                      'text-neon-green'
+                  }`}>
+                  ${player.balance}
+                </div>
+                {isBankrupt && <div className="text-sm font-black text-neon-red uppercase tracking-widest mt-2">Bankrupt</div>}
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
-      {/* Modales inyectados por encima de la pantalla */}
+      {/* Modales */}
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

@@ -27,7 +27,7 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
         body: JSON.stringify({
           roomCode,
           requesterId: currentUserId,
-          targetPlayerId: targetPlayerId, 
+          targetPlayerId: targetPlayerId,
           amount: parseInt(amount, 10)
         }),
       });
@@ -38,7 +38,7 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
       }
 
       const targetName = targetPlayerId === 'all' ? 'Everyone' : players.find(p => p.id === targetPlayerId)?.name;
-      toast.success("Request Sent", {
+      toast.success("Request Sent 📥", {
         description: `You requested $${amount} from ${targetName}.`,
       });
 
@@ -47,7 +47,7 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
       onClose();
 
     } catch (error) {
-      toast.error("Request Failed", {
+      toast.error("Request Failed ❌", {
         description: error.message,
       });
     } finally {
@@ -57,25 +57,29 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] glass-panel border-2 border-neon-cyan/50 text-white rounded-3xl shadow-[0_0_30px_rgba(0,209,255,0.2)]">
         <DialogHeader>
-          <DialogTitle>Request Money</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl font-black text-neon-cyan tracking-wide text-glow">
+            Request Money
+          </DialogTitle>
+          <DialogDescription className="text-slate-300 font-medium">
             Ask a specific player or everyone to pay you money.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleRequest} className="grid gap-4 py-4">
+        <form onSubmit={handleRequest} className="grid gap-5 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Request from:</label>
+            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Request from:</label>
             <Select value={targetPlayerId} onValueChange={setTargetPlayerId} required>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white/5 border-white/20 text-white rounded-2xl h-14 focus:ring-neon-cyan transition-all">
                 <SelectValue placeholder="Select a player or Everyone" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all" className="font-bold text-blue-600">🌍 Everyone (All Players)</SelectItem>
+              <SelectContent className="glass-panel border-white/20 text-white rounded-2xl">
+                <SelectItem value="all" className="font-black text-neon-gold focus:bg-white/10 focus:text-neon-gold">
+                  🌍 Everyone (All Players)
+                </SelectItem>
                 {otherPlayers.map((player) => (
-                  <SelectItem key={player.id} value={player.id}>
+                  <SelectItem key={player.id} value={player.id} className="focus:bg-white/10 focus:text-white font-bold">
                     👤 {player.name}
                   </SelectItem>
                 ))}
@@ -84,22 +88,23 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Amount ($):</label>
-            <Input 
-              type="number" 
-              placeholder="e.g. 50" 
-              value={amount} 
+            <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Amount ($):</label>
+            <Input
+              type="number"
+              placeholder="e.g. 50"
+              value={amount}
               onChange={(e) => setAmount(e.target.value)}
               min="1"
               required
+              className="bg-white/5 border-white/20 text-white rounded-2xl h-16 text-3xl text-center font-black tracking-widest transition-all focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-neon-cyan"
             />
           </div>
 
-          <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <DialogFooter className="mt-6 flex gap-3 sm:justify-between">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-1/2 rounded-2xl border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all h-12">
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="bg-blue-600 hover:bg-blue-700">
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-1/2 rounded-2xl bg-neon-cyan text-black font-black hover:bg-neon-cyan/90 shadow-[0_0_15px_rgba(0,209,255,0.4)] active:scale-95 transition-all h-12 text-lg">
               {isLoading ? 'Processing...' : 'Send Request'}
             </Button>
           </DialogFooter>
