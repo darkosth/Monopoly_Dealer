@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
+// ¡ESTA ES LA LÍNEA MÁGICA QUE SALVA EL DESPLIEGUE EN VERCEL!
+// Le dice a Next.js que esta ruta es 100% dinámica y no debe pre-compilarse.
+export const dynamic = 'force-dynamic';
+
 export async function POST(request) {
   try {
     const { requesterId, targetPlayerId } = await request.json();
