@@ -15,6 +15,8 @@ import BankerPanel from '@/components/game/BankerPanel';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Settings } from 'lucide-react';
 import { toast } from 'sonner';
+// NUEVA IMPORTACIÓN: El motor de animación de números
+import CountUp from 'react-countup';
 
 export default function RoomPage() {
   const params = useParams();
@@ -24,7 +26,6 @@ export default function RoomPage() {
   const { players, currentUserId, setGameData, addPlayer, updatePlayerBalance, updateFreeParking, freeParkingAmount } = useGameStore();
   const [isLoading, setIsLoading] = useState(true);
 
-  // Estado para controlar si el modal se muestra o no
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
@@ -166,10 +167,9 @@ export default function RoomPage() {
   };
 
   return (
-    // Quitamos bg-slate-100 para que se vea el fondo animado del body
     <div className="min-h-screen p-4 sm:p-6 text-white font-sans overflow-hidden">
 
-      {/* Header de la Sala - Ahora es un panel de cristal */}
+      {/* Header de la Sala */}
       <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 glass-panel p-5 rounded-3xl gap-5">
         <div className="text-center md:text-left">
           <h1 className="text-3xl font-black text-white tracking-widest text-glow">ROOM: {roomCode}</h1>
@@ -178,48 +178,27 @@ export default function RoomPage() {
           </p>
         </div>
 
-        {/* Contenedor de botones de acción - Animaciones "Bouncy" */}
         <div className="flex gap-3 w-full md:w-auto flex-wrap justify-center md:justify-end">
-          <Button
-            onClick={() => setIsRequestModalOpen(true)}
-            variant="outline"
-            className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 transition-all active:scale-95"
-          >
+          <Button onClick={() => setIsRequestModalOpen(true)} variant="outline" className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 transition-all active:scale-95">
             📥 Request
           </Button>
-          <Button
-            onClick={() => setIsHistoryModalOpen(true)}
-            variant="outline"
-            className="w-[45%] md:w-auto rounded-2xl border-2 border-white/20 text-white hover:bg-white/10 transition-all active:scale-95"
-          >
+          <Button onClick={() => setIsHistoryModalOpen(true)} variant="outline" className="w-[45%] md:w-auto rounded-2xl border-2 border-white/20 text-white hover:bg-white/10 transition-all active:scale-95">
             📋 History
           </Button>
-          <Button
-            onClick={() => setIsPaymentModalOpen(true)}
-            className="w-[45%] md:w-auto rounded-2xl bg-neon-green text-black font-black hover:bg-neon-green/90 transition-all active:scale-95 shadow-[0_0_15px_rgba(0,255,135,0.4)]"
-          >
+          <Button onClick={() => setIsPaymentModalOpen(true)} className="w-[45%] md:w-auto rounded-2xl bg-neon-green text-black font-black hover:bg-neon-green/90 transition-all active:scale-95 shadow-[0_0_15px_rgba(0,255,135,0.4)]">
             💸 Pay
           </Button>
-          <Button
-            variant="outline"
-            onClick={handleLeave}
-            className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-red text-neon-red hover:bg-neon-red/10 transition-all active:scale-95"
-          >
+          <Button variant="outline" onClick={handleLeave} className="w-[45%] md:w-auto rounded-2xl border-2 border-neon-red text-neon-red hover:bg-neon-red/10 transition-all active:scale-95">
             {isHost ? 'Close Room' : 'Leave'}
           </Button>
         </div>
       </div>
 
-      {/* Panel de Banquero Exclusivo */}
       <BankerPanel currentUserId={currentUserId} />
-
-      {/* Peticiones de Dinero Entrantes */}
       <IncomingRequests roomCode={roomCode} currentUserId={currentUserId} />
-
-      {/* El "Ticket" de seguimiento de dinero que ME deben */}
       <OutgoingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
-      {/* Bote de Free Parking - Efecto Neón Dorado */}
+      {/* Bote de Free Parking con CountUp */}
       <div className="max-w-4xl mx-auto mt-6 bg-black/40 backdrop-blur-md border-2 border-neon-gold/50 rounded-3xl p-5 text-white shadow-[0_0_20px_rgba(255,215,0,0.2)] flex items-center justify-between transition-all transform hover:scale-[1.01]">
         <div className="flex items-center gap-4">
           <div className="bg-neon-gold/20 p-3 rounded-2xl border border-neon-gold/50">
@@ -227,7 +206,9 @@ export default function RoomPage() {
           </div>
           <div>
             <h2 className="text-xs font-black uppercase tracking-widest text-neon-gold">Free Parking Jackpot</h2>
-            <p className="text-4xl font-black text-glow text-white">${freeParkingAmount}</p>
+            <p className="text-4xl font-black text-glow text-white">
+              $<CountUp end={freeParkingAmount} duration={1} preserveValue={true} />
+            </p>
           </div>
         </div>
         <div className="text-right hidden sm:block">
@@ -235,7 +216,7 @@ export default function RoomPage() {
         </div>
       </div>
 
-      {/* Grid de Jugadores */}
+      {/* Grid de Jugadores con CountUp */}
       <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-5 mt-8">
         {players.map((player) => {
           const isBankrupt = player.balance === 0;
@@ -244,7 +225,6 @@ export default function RoomPage() {
           return (
             <Card
               key={player.id}
-              // Inyectamos Glassmorphism y bordes dinámicos
               className={`glass-panel rounded-3xl border-2 transition-all duration-300 ${isMe ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,209,255,0.3)]' : 'border-white/10'
                 } ${isBankrupt ? 'opacity-50 grayscale border-neon-red/50' : ''}`}
             >
@@ -257,18 +237,17 @@ export default function RoomPage() {
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-white/10 rounded-full transition-all">
-                        <span className="sr-only">Open menu</span>
                         <Settings className="h-5 w-5 text-slate-400" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="glass-panel border-white/20 text-white">
-                      <DropdownMenuItem className="hover:bg-white/10 focus:bg-white/10" onClick={() => handleManagePlayer(player.id, 'reset_pin', player.name)}>
+                      <DropdownMenuItem className="hover:bg-white/10" onClick={() => handleManagePlayer(player.id, 'reset_pin', player.name)}>
                         🔄 Reset PIN (0000)
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-neon-gold hover:bg-neon-gold/10 focus:bg-neon-gold/10" onClick={() => handleManagePlayer(player.id, 'declare_bankruptcy', player.name)}>
+                      <DropdownMenuItem className="text-neon-gold hover:bg-neon-gold/10" onClick={() => handleManagePlayer(player.id, 'declare_bankruptcy', player.name)}>
                         📉 Declare Bankruptcy
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-neon-red font-bold hover:bg-neon-red/10 focus:bg-neon-red/10" onClick={() => handleManagePlayer(player.id, 'kick', player.name)}>
+                      <DropdownMenuItem className="text-neon-red font-bold hover:bg-neon-red/10" onClick={() => handleManagePlayer(player.id, 'kick', player.name)}>
                         🚫 Kick Player
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -276,12 +255,12 @@ export default function RoomPage() {
                 )}
               </CardHeader>
               <CardContent>
-                {/* Saldo con resplandor (text-glow) */}
+                {/* Aquí inyectamos el contador animado */}
                 <div className={`text-4xl font-black text-glow tracking-wide ${player.balance < 0 ? 'text-neon-red' :
                     isBankrupt ? 'text-slate-500' :
                       'text-neon-green'
                   }`}>
-                  ${player.balance}
+                  $<CountUp end={player.balance} duration={1} preserveValue={true} />
                 </div>
                 {isBankrupt && <div className="text-sm font-black text-neon-red uppercase tracking-widest mt-2">Bankrupt</div>}
               </CardContent>
@@ -290,29 +269,9 @@ export default function RoomPage() {
         })}
       </div>
 
-      {/* Modales */}
-      <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        roomCode={roomCode}
-        currentUserId={currentUserId}
-        players={players}
-      />
-
-      <TransactionHistoryModal
-        isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-        roomCode={roomCode}
-        players={players}
-      />
-
-      <RequestMoneyModal
-        isOpen={isRequestModalOpen}
-        onClose={() => setIsRequestModalOpen(false)}
-        roomCode={roomCode}
-        currentUserId={currentUserId}
-        players={players}
-      />
+      <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} roomCode={roomCode} currentUserId={currentUserId} players={players} />
+      <TransactionHistoryModal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} roomCode={roomCode} players={players} />
+      <RequestMoneyModal isOpen={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} roomCode={roomCode} currentUserId={currentUserId} players={players} />
     </div>
   );
 }

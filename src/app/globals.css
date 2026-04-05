@@ -124,11 +124,11 @@
 
   /* Clase lista para usar el efecto cristal en cualquier contenedor */
   .glass-panel {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+    @apply bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl;
   }
 
   /* Estilos para el texto de saldo para que resalte más */
   .text-glow {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   }
 }
