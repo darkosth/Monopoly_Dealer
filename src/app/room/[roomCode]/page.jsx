@@ -198,26 +198,8 @@ export default function RoomPage() {
       <IncomingRequests roomCode={roomCode} currentUserId={currentUserId} />
       <OutgoingRequests roomCode={roomCode} currentUserId={currentUserId} />
 
-      {/* Bote de Free Parking con CountUp */}
-      <div className="max-w-4xl mx-auto mt-6 bg-black/40 backdrop-blur-md border-2 border-neon-gold/50 rounded-3xl p-5 text-white shadow-[0_0_20px_rgba(255,215,0,0.2)] flex items-center justify-between transition-all transform hover:scale-[1.01]">
-        <div className="flex items-center gap-4">
-          <div className="bg-neon-gold/20 p-3 rounded-2xl border border-neon-gold/50">
-            <span className="text-4xl" role="img" aria-label="car">🚗</span>
-          </div>
-          <div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-neon-gold">Free Parking Jackpot</h2>
-            <p className="text-4xl font-black text-glow text-white">
-              $<CountUp end={freeParkingAmount} duration={1} preserveValue={true} />
-            </p>
-          </div>
-        </div>
-        <div className="text-right hidden sm:block">
-          <p className="text-sm font-bold text-slate-300">Land in Free Parking to collect!</p>
-        </div>
-      </div>
-
       {/* Grid de Jugadores con CountUp */}
-      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-5 mt-8">
+      <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-3 gap-5 mt-8 pb-32">
         {players.map((player) => {
           const isBankrupt = player.balance === 0;
           const isMe = player.id === currentUserId;
@@ -257,8 +239,8 @@ export default function RoomPage() {
               <CardContent>
                 {/* Aquí inyectamos el contador animado */}
                 <div className={`text-4xl font-black text-glow tracking-wide ${player.balance < 0 ? 'text-neon-red' :
-                    isBankrupt ? 'text-slate-500' :
-                      'text-neon-green'
+                  isBankrupt ? 'text-slate-500' :
+                    'text-neon-green'
                   }`}>
                   $<CountUp end={player.balance} duration={1} preserveValue={true} />
                 </div>
@@ -267,6 +249,23 @@ export default function RoomPage() {
             </Card>
           )
         })}
+      </div>
+
+      <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-4xl z-50 bg-black/70 backdrop-blur-xl border-t-2 border-x-2 border-b-4 border-neon-gold/60 rounded-3xl p-3 sm:p-5 text-white shadow-[0_-10px_40px_rgba(255,215,0,0.2)] flex items-center justify-between transition-all">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="bg-neon-gold/20 p-2 sm:p-3 rounded-2xl border border-neon-gold/50 shadow-[inset_0_0_10px_rgba(255,215,0,0.5)]">
+            <span className="text-3xl sm:text-4xl" role="img" aria-label="car">🚗</span>
+          </div>
+          <div>
+            <h2 className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-neon-gold">Free Parking Jackpot</h2>
+            <p className="text-3xl sm:text-4xl font-black text-glow text-white">
+              $<CountUp end={freeParkingAmount} duration={1} preserveValue={true} />
+            </p>
+          </div>
+        </div>
+        <div className="text-right hidden sm:block pr-2">
+          <p className="text-sm font-black text-slate-300 uppercase tracking-widest text-glow">Land to collect!</p>
+        </div>
       </div>
 
       <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} roomCode={roomCode} currentUserId={currentUserId} players={players} />
