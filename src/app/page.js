@@ -49,7 +49,7 @@ export default function LandingPage() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) throw new Error(data?.error || 'Failed to create game');
 
       const hostPlayer = data.gameSession.players[0];
 
@@ -81,7 +81,7 @@ export default function LandingPage() {
       const res = await fetch(`/api/game/check-room?roomCode=${roomCode}`);
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data?.error || 'Room not found');
 
       setRoomPlayers(data.players);
       setJoinStep(1);
@@ -118,7 +118,7 @@ export default function LandingPage() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
+      if (!response.ok) throw new Error(data?.error || 'Failed to join game');
 
       setGameData(
         data.gameSession.roomCode,
