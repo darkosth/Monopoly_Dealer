@@ -189,7 +189,7 @@ export default function LandingPage() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-300 uppercase tracking-widest">Your Name</label>
                 <Input
-                  placeholder="e.g., Jorge"
+                  placeholder="e.g., Jose"
                   value={playerName}
                   onChange={(e) => setPlayerName(e.target.value)}
                   required
@@ -232,7 +232,7 @@ export default function LandingPage() {
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Room Code</label>
                     <Input
-                      placeholder="e.g., ABCD"
+                      placeholder="e.g., YBX3"
                       value={roomCode}
                       onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                       required
@@ -277,7 +277,7 @@ export default function LandingPage() {
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-neon-cyan uppercase tracking-widest">Your Name</label>
                     <Input
-                      placeholder="e.g., Raquel"
+                      placeholder="e.g., Maria"
                       value={playerName}
                       onChange={(e) => setPlayerName(e.target.value)}
                       required

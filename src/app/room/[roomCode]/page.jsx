@@ -91,6 +91,13 @@ export default function RoomPage() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'Player' },
         (payload) => {
+          // 🛡️ BARRERA DE SEGURIDAD 1: Ignorar jugadores de otras salas
+          const currentPlayers = useGameStore.getState().players;
+          const mySessionId = currentPlayers.length > 0 ? currentPlayers[0].gameSessionId : null;
+          const recordSessionId = payload.new?.gameSessionId || payload.old?.gameSessionId;
+          
+          if (mySessionId && recordSessionId && recordSessionId !== mySessionId) return;
+
           if (payload.eventType === 'INSERT') {
             addPlayer(payload.new);
           }
@@ -112,6 +119,7 @@ export default function RoomPage() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'GameSession' },
         (payload) => {
+          // Ya tenía su barrera correcta 😎
           if (payload.new && payload.new.roomCode === roomCode) {
             updateFreeParking(payload.new.freeParkingAmount);
           }
@@ -122,8 +130,14 @@ export default function RoomPage() {
         { event: 'INSERT', schema: 'public', table: 'TransactionLog' },
         (payload) => {
           const transaction = payload.new;
+          
+          // 🛡️ BARRERA DE SEGURIDAD 2: Ignorar pagos y notificaciones de otras salas
+          const currentPlayers = useGameStore.getState().players;
+          const mySessionId = currentPlayers.length > 0 ? currentPlayers[0].gameSessionId : null;
+
+          if (mySessionId && transaction.gameSessionId && transaction.gameSessionId !== mySessionId) return;
+
           if (transaction.receiverId === currentUserId) {
-            const currentPlayers = useGameStore.getState().players;
             const sender = currentPlayers.find(p => p.id === transaction.senderId);
             const senderName = sender ? sender.name : 'The Bank';
 
@@ -138,7 +152,7 @@ export default function RoomPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [roomCode, isLoading, addPlayer, updatePlayerBalance, currentUserId]);
+  }, [roomCode, isLoading, addPlayer, updatePlayerBalance, currentUserId, router]);
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-neon-cyan font-black text-2xl animate-pulse">Loading Game...</div>;
