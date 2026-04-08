@@ -31,10 +31,11 @@
   },
   "devDependencies": {
     "@prisma/config": "^7.6.0",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.2.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.2",
+    "postcss": "^8.5.9",
     "prisma": "^7.6.0",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4.2.2"
   }
 }

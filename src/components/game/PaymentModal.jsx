@@ -1,20 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
 
-export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId, players }) {
-  const [receiverId, setReceiverId] = useState('');
+export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId, players, preSelectedReceiverId }) {
+  const [receiverId, setReceiverId] = useState(preSelectedReceiverId || '');
   const [amount, setAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const currentPlayer = players.find(p => p.id === currentUserId);
   const currentBalance = currentPlayer?.balance || 0;
   const isInsufficient = amount !== '' && !isNaN(amount) && Number(amount) > currentBalance;
+
+  // Sync if bankPreset changes (e.g., user opens modal for different bank card)
+  useEffect(() => {
+    if (isOpen) {
+      setReceiverId(preSelectedReceiverId || '');
+      setAmount('');
+    }
+  }, [isOpen, preSelectedReceiverId]);
 
   // Filtramos la lista para que no te puedas pagar a ti mismo
   const otherPlayers = players.filter(p => p.id !== currentUserId);

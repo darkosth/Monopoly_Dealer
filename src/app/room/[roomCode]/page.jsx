@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PaymentModal from '@/components/game/PaymentModal';
+import QuickActionModal from '@/components/game/QuickActionModal';
 import TransactionHistoryModal from '@/components/game/TransactionHistoryModal';
 import RequestMoneyModal from '@/components/game/RequestMoneyModal';
 import IncomingRequests from '@/components/game/IncomingRequests';
@@ -29,6 +30,26 @@ export default function RoomPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+
+  // Quick Action Modal state
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
+  const [bankPreset, setBankPreset] = useState(null); // 'bank_property' | 'bank_tax'
+
+  const handlePlayerCardClick = (player) => {
+    if (player.id === currentUserId) {
+      // Own card → open transaction history
+      setIsHistoryModalOpen(true);
+    } else {
+      setSelectedPlayer(player);
+      setIsQuickModalOpen(true);
+    }
+  };
+
+  const handleBankCardClick = (preset) => {
+    setBankPreset(preset);
+    setIsPaymentModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -207,8 +228,12 @@ export default function RoomPage() {
           return (
             <Card
               key={player.id}
-              className={`glass-panel rounded-3xl border-2 transition-all duration-300 ${isMe ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,209,255,0.3)]' : 'border-white/10'
-                } ${isBankrupt ? 'opacity-50 grayscale border-neon-red/50' : ''}`}
+              onClick={() => handlePlayerCardClick(player)}
+              className={`glass-panel rounded-3xl border-2 transition-all duration-300 cursor-pointer select-none
+                ${isMe
+                  ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,209,255,0.3)] hover:shadow-[0_0_30px_rgba(0,209,255,0.5)] hover:scale-[1.02]'
+                  : 'border-white/10 hover:border-white/30 hover:scale-[1.02] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]'
+                } ${isBankrupt ? 'opacity-50 grayscale border-neon-red/50' : ''} active:scale-[0.98]`}
             >
               <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                 <CardTitle className={`text-xl truncate font-bold ${isBankrupt ? 'line-through text-slate-500' : 'text-white'}`}>
@@ -218,7 +243,11 @@ export default function RoomPage() {
                 {isHost && !isMe && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-white/10 rounded-full transition-all">
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-white/10 rounded-full transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Settings className="h-5 w-5 text-slate-400" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -237,7 +266,6 @@ export default function RoomPage() {
                 )}
               </CardHeader>
               <CardContent>
-                {/* Aquí inyectamos el contador animado */}
                 <div className={`text-4xl font-black text-glow tracking-wide ${player.balance < 0 ? 'text-neon-red' :
                   isBankrupt ? 'text-slate-500' :
                     'text-neon-green'
@@ -245,10 +273,59 @@ export default function RoomPage() {
                   $<CountUp end={player.balance} duration={1} preserveValue={true} />
                 </div>
                 {isBankrupt && <div className="text-sm font-black text-neon-red uppercase tracking-widest mt-2">Bankrupt</div>}
+                {isMe && (
+                  <p className="text-xs text-neon-cyan/60 uppercase tracking-widest mt-2 font-bold">
+                    Tap for history
+                  </p>
+                )}
+                {!isMe && !isBankrupt && (
+                  <p className="text-xs text-white/30 uppercase tracking-widest mt-2 font-bold">
+                    Tap to pay / request
+                  </p>
+                )}
               </CardContent>
             </Card>
           )
         })}
+
+        {/* ── Bank Cards ── */}
+        <Card
+          onClick={() => handleBankCardClick('bank_property')}
+          className="glass-panel rounded-3xl border-2 border-neon-gold/40 hover:border-neon-gold/80 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(255,215,0,0.3)] active:scale-[0.98] transition-all duration-300 cursor-pointer select-none"
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl font-bold text-neon-gold truncate">
+              🏦 Bank
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-base font-black text-neon-gold/80 uppercase tracking-wider leading-tight">
+              Buy Property
+            </div>
+            <p className="text-xs text-neon-gold/40 uppercase tracking-widest mt-2 font-bold">
+              Tap to pay bank
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card
+          onClick={() => handleBankCardClick('bank_tax')}
+          className="glass-panel rounded-3xl border-2 border-orange-500/40 hover:border-orange-500/80 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(249,115,22,0.3)] active:scale-[0.98] transition-all duration-300 cursor-pointer select-none"
+        >
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl font-bold text-orange-400 truncate">
+              🏛️ Taxes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-base font-black text-orange-400/80 uppercase tracking-wider leading-tight">
+              Free Parking
+            </div>
+            <p className="text-xs text-orange-400/40 uppercase tracking-widest mt-2 font-bold">
+              Tap to pay taxes
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="fixed bottom-4 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-[calc(100%-2rem)] md:max-w-4xl z-50 bg-black/70 backdrop-blur-xl border-t-2 border-x-2 border-b-4 border-neon-gold/60 rounded-3xl p-3 sm:p-5 text-white shadow-[0_-10px_40px_rgba(255,215,0,0.2)] flex items-center justify-between transition-all">
@@ -268,9 +345,24 @@ export default function RoomPage() {
         </div>
       </div>
 
-      <PaymentModal isOpen={isPaymentModalOpen} onClose={() => setIsPaymentModalOpen(false)} roomCode={roomCode} currentUserId={currentUserId} players={players} />
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => { setIsPaymentModalOpen(false); setBankPreset(null); }}
+        roomCode={roomCode}
+        currentUserId={currentUserId}
+        players={players}
+        preSelectedReceiverId={bankPreset}
+      />
       <TransactionHistoryModal isOpen={isHistoryModalOpen} onClose={() => setIsHistoryModalOpen(false)} roomCode={roomCode} players={players} />
       <RequestMoneyModal isOpen={isRequestModalOpen} onClose={() => setIsRequestModalOpen(false)} roomCode={roomCode} currentUserId={currentUserId} players={players} />
+      <QuickActionModal
+        isOpen={isQuickModalOpen}
+        onClose={() => { setIsQuickModalOpen(false); setSelectedPlayer(null); }}
+        targetPlayer={selectedPlayer}
+        currentUserId={currentUserId}
+        roomCode={roomCode}
+        players={players}
+      />
     </div>
   );
 }
