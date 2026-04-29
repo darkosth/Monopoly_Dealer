@@ -30,7 +30,8 @@ export default function TransactionHistoryModal({ isOpen, onClose, roomCode, pla
   const fetchHistory = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/transaction/history?roomCode=${roomCode}`);
+      // 🛠️ ACTUALIZADO: Apuntando a la nueva ruta /api/monopoly/...
+      const response = await fetch(`/api/monopoly/transaction/history?roomCode=${roomCode}`);
       const data = await response.json();
       if (response.ok) {
         setTransactions(data.transactions || []);

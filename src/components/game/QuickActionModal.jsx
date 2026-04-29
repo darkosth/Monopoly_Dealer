@@ -47,7 +47,7 @@ export default function QuickActionModal({
 
     try {
       if (mode === 'pay') {
-        const response = await fetch('/api/transaction', {
+        const response = await fetch('/api/monopoly/transaction', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -66,7 +66,7 @@ export default function QuickActionModal({
           description: `You paid $${amountNum} to ${targetPlayer.name}.`,
         });
       } else {
-        const response = await fetch('/api/payment-request', {
+        const response = await fetch('/api/monopoly/payment-request', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

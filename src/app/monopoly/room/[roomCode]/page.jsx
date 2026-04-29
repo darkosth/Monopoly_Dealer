@@ -60,7 +60,7 @@ export default function RoomPage() {
       }
 
       try {
-        const response = await fetch(`/api/game/info?roomCode=${roomCode}`);
+        const response = await fetch(`/api/monopoly/game/info?roomCode=${roomCode}`);
         const data = await response.json();
 
         if (!response.ok) throw new Error(data.error);
@@ -167,7 +167,7 @@ export default function RoomPage() {
     }
 
     try {
-      const res = await fetch('/api/game/banker/manage-player', {
+      const res = await fetch('/api/monopoly/game/banker/manage-player', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requesterId: currentUserId, targetPlayerId: targetId, action })
@@ -187,7 +187,7 @@ export default function RoomPage() {
     if (isHost) {
       if (!window.confirm("🚨 WARNING 🚨\nAre you sure you want to close this room? This will kick everyone out and PERMANENTLY delete all transaction history, players, and balances.")) return;
       try {
-        await fetch('/api/game/delete', {
+        await fetch('/api/monopoly/game/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roomCode, requesterId: currentUserId })
@@ -197,7 +197,7 @@ export default function RoomPage() {
       }
     } else {
       if (!window.confirm("Are you sure you want to leave the room?")) return;
-      router.push('/');
+      router.push('/monopoly');
     }
   };
 

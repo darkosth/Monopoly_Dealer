@@ -14,7 +14,8 @@ export default function OutgoingRequests({ roomCode, currentUserId }) {
 
     const fetchOutbound = useCallback(async () => {
         try {
-            const response = await fetch(`/api/payment-request?roomCode=${roomCode}&playerId=${currentUserId}&type=outgoing`);
+            // 🛠️ ACTUALIZADO: Apuntando a la nueva ruta /api/monopoly/...
+            const response = await fetch(`/api/monopoly/payment-request?roomCode=${roomCode}&playerId=${currentUserId}&type=outgoing`);
             const data = await response.json();
             if (response.ok) {
                 setOutboundRequests(data.requests || []);
@@ -48,7 +49,8 @@ export default function OutgoingRequests({ roomCode, currentUserId }) {
     // Función para cerrar manualmente los tickets rechazados
     const handleCloseTicket = async (requestId) => {
         try {
-            const response = await fetch('/api/payment-request/close', {
+            // 🛠️ ACTUALIZADO: Apuntando a la nueva ruta /api/monopoly/...
+            const response = await fetch('/api/monopoly/payment-request/close', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ requestId, requesterId: currentUserId })

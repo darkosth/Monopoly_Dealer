@@ -6,6 +6,10 @@ datasource db {
   provider  = "postgresql"
 }
 
+// ==========================================
+// THE MONOPOLY MODELS
+// ==========================================
+
 // Tabla para la sala de juego
 model GameSession {
   id                String            @id @default(uuid())
@@ -59,4 +63,61 @@ model PaymentRequest {
   // Llave foránea
   gameSessionId String
   gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+}
+
+
+// ==========================================
+// THE CHAMELEON MODELS
+// ==========================================
+
+model ChameleonSession {
+  id              String            @id @default(cuid())
+  roomCode        String            @unique
+  status          String            @default("lobby") // 'lobby', 'playing', 'voting', 'results'
+  category        String?           
+  secretWord      String?           
+  chameleonId     String?           
+  
+  // NUEVOS CAMPOS PARA EL MOTOR DE RONDAS
+  maxVotesAllowed Int               @default(1) // El Host lo configura (1, 2, o 3)
+  votesUsed       Int               @default(0) // Cuántas votaciones han gastado
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  players         ChameleonPlayer[]
+  votes           ChameleonVote[]   // Registro de votos emitidos
+}
+
+model ChameleonPlayer {
+  id              String           @id @default(cuid())
+  name            String
+  pin             String
+  isHost          Boolean          @default(false)
+  isParticipating Boolean          @default(true) // Si es false, es solo el Referí/Host
+  score           Int              @default(0)
+  hasVoted        Boolean          @default(false)
+  
+  sessionId       String
+  session         ChameleonSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  votesCast       ChameleonVote[]  @relation("Voter")
+  votesReceived   ChameleonVote[]  @relation("VotedTarget")
+  
+  createdAt       DateTime         @default(now())
+}
+
+model ChameleonVote {
+  id              String           @id @default(cuid())
+  sessionId       String
+  session         ChameleonSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  voterId         String
+  voter           ChameleonPlayer  @relation("Voter", fields: [voterId], references: [id])
+  
+  votedTargetId   String
+  votedTarget     ChameleonPlayer  @relation("VotedTarget", fields: [votedTargetId], references: [id])
+  
+  createdAt       DateTime         @default(now())
+  
+  @@unique([sessionId, voterId]) // Un jugador solo puede emitir un voto por ronda
 }

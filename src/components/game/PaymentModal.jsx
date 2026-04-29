@@ -38,7 +38,7 @@ export default function PaymentModal({ isOpen, onClose, roomCode, currentUserId,
       const isBankTax = receiverId === 'bank_tax';
       const isBank = isBankProperty || isBankTax;
 
-      const response = await fetch('/api/transaction', {
+      const response = await fetch('/api/monopoly/transaction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

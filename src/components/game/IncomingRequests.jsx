@@ -14,7 +14,8 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
   const fetchRequests = useCallback(async () => {
     if (!roomCode || !currentUserId) return;
     try {
-      const response = await fetch(`/api/payment-request?roomCode=${roomCode}&playerId=${currentUserId}&type=incoming`);
+      // 🛠️ ACTUALIZADO: Apuntando a la nueva ruta /api/monopoly/...
+      const response = await fetch(`/api/monopoly/payment-request?roomCode=${roomCode}&playerId=${currentUserId}&type=incoming`);
       const data = await response.json();
       if (response.ok) {
         setRequests(data.requests || []);
@@ -44,11 +45,11 @@ export default function IncomingRequests({ roomCode, currentUserId }) {
     };
   }, [fetchRequests, currentUserId]);
 
-
   const handleRespond = async (requestId, action) => {
     setProcessingId(requestId);
     try {
-      const response = await fetch('/api/payment-request/respond', {
+      // 🛠️ ACTUALIZADO: Apuntando a la nueva ruta /api/monopoly/...
+      const response = await fetch('/api/monopoly/payment-request/respond', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

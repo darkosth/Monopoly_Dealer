@@ -42,7 +42,7 @@ export default function LandingPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/game/create', {
+      const response = await fetch('/api/monopoly/game/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hostName: playerName, pin: pin }),
@@ -61,7 +61,7 @@ export default function LandingPage() {
       );
 
       localStorage.setItem('monopolyUserId', hostPlayer.id);
-      router.push(`/room/${data.gameSession.roomCode}`);
+      router.push(`/monopoly/room/${data.gameSession.roomCode}`);
     } catch (err) {
       setError(err.message || 'Error creating game');
       setIsLoading(false);
@@ -78,7 +78,7 @@ export default function LandingPage() {
     setError('');
 
     try {
-      const res = await fetch(`/api/game/check-room?roomCode=${roomCode}`);
+      const res = await fetch(`/api/monopoly/game/check-room?roomCode=${roomCode}`);
       const data = await res.json();
 
       if (!res.ok) throw new Error(data?.error || 'Room not found');
@@ -111,7 +111,7 @@ export default function LandingPage() {
       if (action === 'new') payload.playerName = playerName;
       if (action === 'reconnect') payload.playerId = selectedPlayerId;
 
-      const response = await fetch('/api/game/join', {
+      const response = await fetch('/api/monopoly/game/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -129,7 +129,7 @@ export default function LandingPage() {
 
       localStorage.setItem('monopolyUserId', data.player.id);
       toast.success(action === 'new' ? "Account Created! 🚀" : "Welcome back! 🎮");
-      router.push(`/room/${data.gameSession.roomCode}`);
+      router.push(`/monopoly/room/${data.gameSession.roomCode}`);
     } catch (err) {
       setError(err.message || 'Login failed');
       setIsLoading(false);

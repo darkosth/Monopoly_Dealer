@@ -21,7 +21,7 @@ export default function RequestMoneyModal({ isOpen, onClose, roomCode, currentUs
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/payment-request', {
+      const response = await fetch('/api/monopoly/payment-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

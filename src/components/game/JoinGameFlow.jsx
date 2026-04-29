@@ -29,10 +29,11 @@ export default function JoinGameFlow() {
         setIsLoading(true);
 
         try {
-            const res = await fetch(`/api/game/check-room?roomCode=${roomCode}`);
-            const data = await res.json();
+            // 🛠️ ACTUALIZADO: Nueva ruta de API
+            const res = await fetch(`/api/monopoly/game/check-room?roomCode=${roomCode}`);
+            const data = await res.json().catch(() => null);
 
-            if (!res.ok) throw new Error(data.error);
+            if (!res.ok) throw new Error(data?.error || 'La sala no existe o el servidor no responde.');
 
             setRoomPlayers(data.players);
             setStep(1); // Pasamos a elegir si somos nuevos o existentes
@@ -58,19 +59,22 @@ export default function JoinGameFlow() {
             if (action === 'new') payload.playerName = playerName;
             if (action === 'reconnect') payload.playerId = selectedPlayerId;
 
-            const res = await fetch('/api/game/join', {
+            // 🛠️ ACTUALIZADO: Nueva ruta de API
+            const res = await fetch('/api/monopoly/game/join', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            const data = await res.json().catch(() => null);
+            if (!res.ok) throw new Error(data?.error || 'Error al unirse. Verifica tu conexión.');
 
             // ¡Login Exitoso! Guardamos en LocalStorage y entramos
             localStorage.setItem('monopolyUserId', data.player.id);
             toast.success(action === 'new' ? "Account Created! 🚀" : "Welcome back! 🎮");
-            router.push(`/room/${data.gameSession.roomCode}`);
+            
+            // 🛠️ ACTUALIZADO: Nueva ruta del frontend
+            router.push(`/monopoly/room/${data.gameSession.roomCode}`);
 
         } catch (error) {
             toast.error("Login Failed ❌", { description: error.message });
@@ -153,7 +157,7 @@ export default function JoinGameFlow() {
                                 className="bg-white/5 border-white/20 text-white rounded-2xl h-16 text-center text-3xl tracking-[0.5em] focus-visible:ring-neon-cyan transition-all font-black"
                                 required
                             />
-                            <p className="text-xs text-slate-400 text-center font-medium mt-2">Don't forget it! You'll need it to reconnect.</p>
+                            <p className="text-xs text-slate-400 text-center font-medium mt-2">Don&apost forget it! You&aposll need it to reconnect.</p>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-1/3 rounded-2xl border-white/20 text-white hover:bg-white/10 active:scale-95 transition-all h-14">

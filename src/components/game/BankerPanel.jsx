@@ -34,7 +34,7 @@ export default function BankerPanel({ currentUserId }) {
 
         setIsLoading(true);
         try {
-            const res = await fetch(`/api/game/banker/${endpoint}`, {
+            const res = await fetch(`/api/monopoly/game/banker/${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ requesterId: currentUserId, targetPlayerId: targetId, ...payload })
