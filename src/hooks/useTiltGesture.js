@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { createTiltDetector, normalizeTilt } from "@/lib/heads-up/tiltEngine.mjs";
+import { createTiltDetector, projectForeheadTilt } from "@/lib/heads-up/tiltEngine.mjs";
 
 export function useTiltGesture({ enabled, onGesture }) {
   const [permission, setPermission] = useState("unknown");
@@ -33,8 +33,9 @@ export function useTiltGesture({ enabled, onGesture }) {
     if (!enabled || permission !== "granted") return undefined;
     detectorRef.current = createTiltDetector();
     const handleOrientation = (event) => {
-      const screenAngle = window.screen?.orientation?.angle ?? window.orientation ?? 0;
-      const gesture = detectorRef.current.update(normalizeTilt({ beta: event.beta, gamma: event.gamma, screenAngle }));
+      const tilt = projectForeheadTilt({ beta: event.beta, gamma: event.gamma });
+      if (tilt === null) return;
+      const gesture = detectorRef.current.update(tilt);
       if (gesture) callbackRef.current?.(gesture);
     };
     window.addEventListener("deviceorientation", handleOrientation);

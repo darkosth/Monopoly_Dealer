@@ -6,6 +6,16 @@ export function normalizeTilt({ beta = 0, gamma = 0, screenAngle = 0 }) {
   return Number(beta || 0);
 }
 
+export function projectForeheadTilt({ beta, gamma }) {
+  if (!Number.isFinite(beta) || !Number.isFinite(gamma)) return null;
+
+  const radians = Math.PI / 180;
+  const screenNormalVertical = Math.cos(beta * radians) * Math.cos(gamma * radians);
+  const clampedProjection = Math.min(1, Math.max(-1, screenNormalVertical));
+
+  return -Math.asin(clampedProjection) / radians;
+}
+
 export function createTiltDetector({ threshold = 40, neutralThreshold = 12, cooldownMs = 1500 } = {}) {
   let baseline = null;
   let armed = true;
