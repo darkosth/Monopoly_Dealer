@@ -6,7 +6,7 @@ export function normalizeTilt({ beta = 0, gamma = 0, screenAngle = 0 }) {
   return Number(beta || 0);
 }
 
-export function createTiltDetector({ threshold = 32, neutralThreshold = 12, cooldownMs = 650 } = {}) {
+export function createTiltDetector({ threshold = 40, neutralThreshold = 12, cooldownMs = 1500 } = {}) {
   let baseline = null;
   let armed = true;
   let lastGestureAt = Number.NEGATIVE_INFINITY;
