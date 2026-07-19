@@ -16,4 +16,22 @@ describe("Heads Up tilt engine", () => {
     expect(detector.update(5, 30)).toBeNull();
     expect(detector.update(-38, 40)).toBe("pass");
   });
+
+  it("ignores small movements with the default sensitivity", () => {
+    const detector = createTiltDetector();
+
+    expect(detector.update(0, 0)).toBeNull();
+    expect(detector.update(38, 100)).toBeNull();
+    expect(detector.update(42, 200)).toBe("correct");
+  });
+
+  it("waits 1.5 seconds before capturing the next gesture", () => {
+    const detector = createTiltDetector();
+
+    expect(detector.update(0, 0)).toBeNull();
+    expect(detector.update(45, 100)).toBe("correct");
+    expect(detector.update(0, 200)).toBeNull();
+    expect(detector.update(-45, 1400)).toBeNull();
+    expect(detector.update(-45, 1600)).toBe("pass");
+  });
 });
