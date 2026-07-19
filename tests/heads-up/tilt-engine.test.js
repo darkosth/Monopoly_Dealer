@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { createTiltDetector, normalizeTilt } from "../../src/lib/heads-up/tiltEngine.mjs";
+import { createTiltDetector, normalizeTilt, projectForeheadTilt } from "../../src/lib/heads-up/tiltEngine.mjs";
 
 describe("Heads Up tilt engine", () => {
   it("normalizes both landscape orientations to the same gesture axis", () => {
     expect(normalizeTilt({ beta: 10, gamma: 35, screenAngle: 90 })).toBe(-35);
     expect(normalizeTilt({ beta: 10, gamma: -35, screenAngle: 270 })).toBe(-35);
+  });
+
+  it("keeps opposite forehead tilts distinct near the landscape singularity", () => {
+    expect(projectForeheadTilt({ beta: 0, gamma: 90 })).toBeCloseTo(0);
+    expect(projectForeheadTilt({ beta: 0, gamma: 45 })).toBeCloseTo(-45);
+    expect(projectForeheadTilt({ beta: 180, gamma: 45 })).toBeCloseTo(45);
+    expect(projectForeheadTilt({ beta: null, gamma: null })).toBeNull();
   });
 
   it("fires once and rearms only after returning to neutral", () => {
