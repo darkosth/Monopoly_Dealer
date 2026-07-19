@@ -121,3 +121,36 @@ model ChameleonVote {
   
   @@unique([sessionId, voterId]) // Un jugador solo puede emitir un voto por ronda
 }
+
+// ==========================================
+// HEADS UP BILINGUAL CATALOG
+// ==========================================
+
+model HeadsUpCategory {
+  id        String          @id @default(cuid())
+  slug      String          @unique
+  nameEs    String
+  nameEn    String
+  isActive  Boolean         @default(true)
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  options   HeadsUpOption[]
+
+  @@index([isActive, sortOrder])
+}
+
+model HeadsUpOption {
+  id         String          @id @default(cuid())
+  textEs     String
+  textEn     String
+  imageUrl   String?
+  isActive   Boolean         @default(true)
+  sortOrder  Int             @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  categoryId String
+  category   HeadsUpCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, isActive, sortOrder])
+}

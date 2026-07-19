@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Monopoly Bank",
-  description: "Real-time Monopoly transactions",
+  title: "Family Arcade",
+  description: "Family game night, ready on every phone.",
 };
 
 export default function RootLayout({ children }) {
   return (
     // 2. Agregamos className="dark" para forzar el modo oscuro de Shadcn
-    <html lang="en" className="dark">
+    <html lang="es" className="dark">
       <body className={`${outfit.variable} ${geistMono.variable} font-sans antialiased`}>
         {children}
         {/* 3. Forzamos el tema oscuro en las notificaciones para que combinen */}

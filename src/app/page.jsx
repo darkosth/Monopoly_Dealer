@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Gamepad2, Coins, Sparkles, Lock } from 'lucide-react';
+import { Gamepad2, Coins, Sparkles, Lock, ScanFace } from 'lucide-react';
 
 export default function GamesHubPage() {
   const games = [
@@ -25,6 +25,18 @@ export default function GamesHubPage() {
       href: '/chameleon',
       icon: <Sparkles className="w-8 h-8 text-neon-cyan/50" />,
       color: 'neon-gold', 
+      borderColor: 'border-neon-gold/50',
+      glow: 'shadow-[0_0_30px_rgba(255,215,0,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.4)]',
+      isLocked: false,
+      badge: 'ACTIVE'
+    },
+    {
+      id: 'heads-up',
+      title: 'Heads Up',
+      description: 'Tilt, guess, and pass the phone.',
+      href: '/heads-up',
+      icon: <ScanFace className="w-8 h-8 text-neon-gold" />,
+      color: 'neon-gold',
       borderColor: 'border-neon-gold/50',
       glow: 'shadow-[0_0_30px_rgba(255,215,0,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.4)]',
       isLocked: false,
