@@ -35,3 +35,31 @@ export function validateOptionInput(input = {}) {
   }
   return { ok: true, data };
 }
+
+export function validateCatalogBatchInput(input = {}) {
+  const category = validateCategoryInput(input.category);
+  if (!category.ok) return category;
+  if (!Array.isArray(input.options)) return { ok: false, error: "Options must be an array" };
+  if (input.options.length > 500) return { ok: false, error: "A category cannot contain more than 500 options" };
+
+  const ids = input.options.map((option) => option?.id).filter(Boolean);
+  if (new Set(ids).size !== ids.length) return { ok: false, error: "Option ids must be unique" };
+
+  const options = [];
+  for (const [index, option] of input.options.entries()) {
+    const result = validateOptionInput(option);
+    if (!result.ok) {
+      const detail = result.error === "Both translations are required"
+        ? "Spanish and English text are required"
+        : result.error;
+      return { ok: false, error: `Option ${index + 1}: ${detail}` };
+    }
+
+    options.push({
+      ...(typeof option.id === "string" && option.id ? { id: option.id } : {}),
+      ...result.data,
+    });
+  }
+
+  return { ok: true, data: { category: category.data, options } };
+}
