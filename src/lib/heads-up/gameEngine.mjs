@@ -18,6 +18,16 @@ export function createRound({ options, durationSeconds = 60, random = Math.rando
     currentIndex: 0,
     correct: [],
     passed: [],
+    results: [],
+  };
+}
+
+function withResultLists(round, results) {
+  return {
+    ...round,
+    results,
+    correct: results.filter((result) => result.outcome === "correct").map((result) => result.option),
+    passed: results.filter((result) => result.outcome === "pass").map((result) => result.option),
   };
 }
 
@@ -25,10 +35,18 @@ export function recordGesture(round, gesture) {
   const current = round.queue[round.currentIndex];
   if (!current || !["correct", "pass"].includes(gesture)) return round;
 
-  return {
+  return withResultLists({
     ...round,
     currentIndex: round.currentIndex + 1,
-    correct: gesture === "correct" ? [...round.correct, current] : round.correct,
-    passed: gesture === "pass" ? [...round.passed, current] : round.passed,
-  };
+  }, [...round.results, { option: current, outcome: gesture }]);
+}
+
+export function toggleResult(round, resultIndex) {
+  if (!Number.isInteger(resultIndex) || !round.results[resultIndex]) return round;
+
+  const results = round.results.map((result, index) => index === resultIndex
+    ? { ...result, outcome: result.outcome === "correct" ? "pass" : "correct" }
+    : result);
+
+  return withResultLists(round, results);
 }
