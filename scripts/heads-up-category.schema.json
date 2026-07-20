@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["category", "options"],
+  "properties": {
+    "category": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nameEs", "nameEn", "isActive", "sortOrder"],
+      "properties": {
+        "nameEs": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "nameEn": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "isActive": { "type": "boolean", "enum": [true] },
+        "sortOrder": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "options": {
+      "type": "array",
+      "minItems": 100,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["textEs", "textEn", "imageUrl", "isActive", "sortOrder"],
+        "properties": {
+          "textEs": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "textEn": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "imageUrl": { "type": "null" },
+          "isActive": { "type": "boolean", "enum": [true] },
+          "sortOrder": { "type": "integer", "minimum": 0, "maximum": 99 }
+        }
+      }
+    }
+  }
+}
