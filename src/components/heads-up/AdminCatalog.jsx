@@ -31,6 +31,7 @@ export default function AdminCatalog() {
   const [generationForm, setGenerationForm] = useState({ name: "", explanation: "", instructions: "" });
   const [generationJobId, setGenerationJobId] = useState(null);
   const [generationStatus, setGenerationStatus] = useState("");
+  const [generationError, setGenerationError] = useState("");
 
   const load = useCallback(async () => {
     const data = await api("/api/heads-up/admin/categories");
@@ -42,7 +43,17 @@ export default function AdminCatalog() {
     api("/api/heads-up/admin/session")
       .then((data) => {
         setAuthenticated(data.authenticated);
-        if (data.authenticated) load();
+        if (data.authenticated) {
+          load();
+          api("/api/heads-up/admin/generation-jobs")
+            .then(({ job }) => {
+              if (!job) return;
+              setGenerationJobId(job.id);
+              setGenerationStatus(job.status);
+              setGenerationOpen(true);
+            })
+            .catch((caught) => setError(caught.message));
+        }
       })
       .catch(() => setAuthenticated(false));
   }, [load]);
@@ -74,20 +85,23 @@ export default function AdminCatalog() {
           setGenerationJobId(null);
           setGenerationOpen(false);
           setGenerationForm({ name: "", explanation: "", instructions: "" });
+          setGenerationError("");
           setNotice("Borrador generado. Revísalo antes de guardar.");
           return;
         }
 
         if (data.job.status === "FAILED" || data.job.status === "CANCELLED") {
           setGenerationJobId(null);
-          setError(data.job.error || "La generación no pudo completarse.");
+          setGenerationError(data.job.error || "La generación no pudo completarse.");
+          setGenerationOpen(true);
           return;
         }
       } catch (caught) {
         failures += 1;
         if (failures >= 3) {
           setGenerationJobId(null);
-          setError(caught.message);
+          setGenerationError(caught.message);
+          setGenerationOpen(true);
           return;
         }
       }
@@ -205,6 +219,7 @@ export default function AdminCatalog() {
     event.preventDefault();
     setError("");
     setNotice("");
+    setGenerationError("");
     try {
       const data = await api("/api/heads-up/admin/generation-jobs", {
         method: "POST",
@@ -213,7 +228,7 @@ export default function AdminCatalog() {
       setGenerationJobId(data.job.id);
       setGenerationStatus(data.job.status);
     } catch (caught) {
-      setError(caught.message);
+      setGenerationError(caught.message);
     }
   };
 
@@ -273,7 +288,10 @@ export default function AdminCatalog() {
                 onClick={() => { setSelectedId(category.id); setQuery(""); setNotice(""); }}
                 className={`w-full rounded-2xl border p-4 text-left ${selectedId === category.id ? "border-amber-300 bg-amber-300 text-stone-950" : "border-white/10 bg-stone-900"}`}
               >
-                <span className="block font-black">{category.nameEs}</span>
+                <span className="flex items-center justify-between gap-2 font-black">
+                  {category.nameEs}
+                  {category.isGeneratedDraft && <span className="rounded-full bg-violet-500/20 px-2 py-1 text-[10px] uppercase tracking-wide text-violet-200">Borrador</span>}
+                </span>
                 <span className="text-sm opacity-60">{category.nameEn} · {category.options.filter((option) => option.isActive).length}</span>
               </button>
             ))}
@@ -281,6 +299,9 @@ export default function AdminCatalog() {
 
           {selected && (
             <section className="min-w-0 space-y-5">
+              {selected.isGeneratedDraft && (
+                <p className="rounded-xl border border-violet-400/30 bg-violet-400/10 p-3 text-sm font-semibold text-violet-200">Borrador de Yuri · aún no está publicado</p>
+              )}
               <div className="grid gap-3 rounded-2xl border border-white/10 bg-stone-900 p-4 sm:grid-cols-[1fr_1fr_auto]">
                 <Input aria-label="Category name in Spanish" placeholder="Categoría en español" value={selected.nameEs} onChange={(event) => updateLocalCategory(selected.id, { nameEs: event.target.value })} />
                 <Input aria-label="Category name in English" placeholder="Category in English" value={selected.nameEn} onChange={(event) => updateLocalCategory(selected.id, { nameEn: event.target.value })} />
@@ -340,7 +361,7 @@ export default function AdminCatalog() {
       </div>
 
       <Dialog open={generationOpen} onOpenChange={setGenerationOpen}>
-        <DialogContent className="border-stone-700 bg-stone-950 p-6 text-white ring-white/10 sm:max-w-lg">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto border-stone-700 bg-stone-950 p-6 text-white ring-white/10 sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl font-black"><Sparkles className="text-violet-300" /> Generar categoría</DialogTitle>
             <DialogDescription className="text-stone-400">Yuri preparará 100 opciones bilingües para revisar.</DialogDescription>
@@ -364,10 +385,11 @@ export default function AdminCatalog() {
                 <LoaderCircle className="animate-spin" /> {generationStatus === "RUNNING" ? "Yuri está creando la categoría…" : "Esperando a Yuri…"}
               </p>
             )}
+            {generationError && <p role="alert" className="rounded-xl bg-rose-500/10 p-3 text-sm font-semibold text-rose-300">{generationError}</p>}
           </form>
 
           <DialogFooter className="-mx-6 -mb-6 border-white/10 bg-stone-900/80 p-6">
-            <Button type="button" variant="ghost" onClick={() => setGenerationOpen(false)}>Cerrar</Button>
+            <Button type="button" variant="ghost" onClick={() => setGenerationOpen(false)}>{generationJobId ? "Seguir en segundo plano" : "Cerrar"}</Button>
             <Button type="submit" form="heads-up-generation-form" disabled={Boolean(generationJobId)} className="bg-violet-300 font-black text-stone-950 hover:bg-violet-200">
               {generationJobId ? <LoaderCircle className="animate-spin" /> : <Sparkles />} Generar
             </Button>

@@ -9,6 +9,16 @@ export const dynamic = "force-dynamic";
 
 const NO_STORE = { "Cache-Control": "private, no-store" };
 
+export async function GET() {
+  if (!(await isAdminRequest())) return problem(401, "Unauthorized", "Administrator access is required.");
+  const job = await prisma.headsUpGenerationJob.findFirst({
+    where: { status: { in: ["PENDING", "RUNNING", "READY"] } },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, status: true },
+  });
+  return Response.json({ job }, { headers: NO_STORE });
+}
+
 export async function POST(request) {
   if (!(await isAdminRequest())) return problem(401, "Unauthorized", "Administrator access is required.");
   if (!isSameOriginMutation(request)) return problem(403, "Forbidden", "The request origin is not allowed.");
