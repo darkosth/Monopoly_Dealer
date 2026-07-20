@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -73,14 +73,18 @@ function killProcessGroup(child, signal) {
 async function runCodex(job) {
   const isolatedDirectory = await mkdtemp(path.join(os.tmpdir(), "heads-up-yuri-"));
   const schemaPath = path.join(isolatedDirectory, "category.schema.json");
+  const isolatedCodexHome = path.join(isolatedDirectory, "codex-home");
+  const sourceCodexHome = process.env.CODEX_HOME || path.join(process.env.HOME, ".codex");
+  await mkdir(isolatedCodexHome, { mode: 0o700 });
   await cp(schemaSource, schemaPath);
+  await cp(path.join(sourceCodexHome, "auth.json"), path.join(isolatedCodexHome, "auth.json"));
 
   try {
     return await new Promise((resolve, reject) => {
       const child = spawn(process.env.HEADS_UP_CODEX_BIN || "codex", buildCodexArgs(schemaPath), {
         cwd: isolatedDirectory,
         detached: true,
-        env: createCodexEnvironment(),
+        env: createCodexEnvironment(process.env, { home: isolatedDirectory, codexHome: isolatedCodexHome }),
         shell: false,
         stdio: ["pipe", "pipe", "pipe"],
       });
@@ -154,7 +158,7 @@ async function markFailed(job) {
 async function cleanupOldJobs() {
   await pool.query(`
     DELETE FROM "HeadsUpGenerationJob"
-    WHERE "status" IN ('FAILED', 'IMPORTED', 'CANCELLED')
+    WHERE "status" IN ('READY', 'FAILED', 'IMPORTED', 'CANCELLED')
       AND "updatedAt" < NOW() - INTERVAL '7 days'
   `);
 }
@@ -179,9 +183,10 @@ async function main() {
       const result = await runCodex(job);
       await markReady(job.id, result);
       console.info("Heads Up category generation ready", { jobId: job.id });
-    } catch {
+    } catch (error) {
       await markFailed(job);
-      console.warn("Heads Up category generation attempt failed", { jobId: job.id, attempt: job.attemptCount });
+      const code = /^[A-Z0-9_]+$/.test(error.message || "") ? error.message : error.code || "UNKNOWN";
+      console.warn("Heads Up category generation attempt failed", { jobId: job.id, attempt: job.attemptCount, code });
     }
   }
 }

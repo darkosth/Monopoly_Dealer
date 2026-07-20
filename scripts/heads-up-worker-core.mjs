@@ -61,12 +61,12 @@ export function buildCodexArgs(schemaPath) {
   ];
 }
 
-export function createCodexEnvironment(source = process.env) {
-  const home = source.HOME;
+export function createCodexEnvironment(source = process.env, overrides = {}) {
+  const home = overrides.home || source.HOME;
   if (!home) throw new Error("CODEX_HOME_UNAVAILABLE");
   return {
     HOME: home,
-    CODEX_HOME: source.CODEX_HOME || path.join(home, ".codex"),
+    CODEX_HOME: overrides.codexHome || source.CODEX_HOME || path.join(home, ".codex"),
     PATH: source.PATH || "/usr/local/bin:/usr/bin:/bin",
     LANG: source.LANG || "C.UTF-8",
     LC_ALL: source.LC_ALL || source.LANG || "C.UTF-8",

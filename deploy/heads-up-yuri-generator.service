@@ -1,0 +1,26 @@
+[Unit]
+Description=Heads Up Yuri category generator
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/projects/Monopoly_Dealer
+ExecStart=/usr/bin/node --env-file=%h/projects/Monopoly_Dealer/.env %h/projects/Monopoly_Dealer/scripts/heads-up-yuri-worker.mjs
+Environment=PATH=%h/.npm-global/bin:/usr/local/bin:/usr/bin:/bin
+Environment=HEADS_UP_CODEX_BIN=%h/.npm-global/bin/codex
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=default.target
