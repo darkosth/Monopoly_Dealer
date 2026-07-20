@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, LogOut, Plus, Save, X } from "lucide-react";
+import { ArrowLeft, LoaderCircle, LogOut, Plus, Save, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
 async function api(url, options) {
@@ -26,6 +27,10 @@ export default function AdminCatalog() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [generationOpen, setGenerationOpen] = useState(false);
+  const [generationForm, setGenerationForm] = useState({ name: "", explanation: "", instructions: "" });
+  const [generationJobId, setGenerationJobId] = useState(null);
+  const [generationStatus, setGenerationStatus] = useState("");
 
   const load = useCallback(async () => {
     const data = await api("/api/heads-up/admin/categories");
@@ -41,6 +46,60 @@ export default function AdminCatalog() {
       })
       .catch(() => setAuthenticated(false));
   }, [load]);
+
+  useEffect(() => {
+    if (!generationJobId) return undefined;
+    let cancelled = false;
+    let timer;
+    let failures = 0;
+
+    const poll = async () => {
+      try {
+        const data = await api(`/api/heads-up/admin/generation-jobs/${generationJobId}`);
+        if (cancelled) return;
+        failures = 0;
+        setGenerationStatus(data.job.status);
+
+        if (data.job.status === "READY") {
+          const draftId = `generated:${generationJobId}`;
+          const generated = {
+            ...data.job.result.category,
+            id: draftId,
+            generationJobId,
+            isGeneratedDraft: true,
+            options: data.job.result.options.map((option) => ({ ...option, clientKey: crypto.randomUUID() })),
+          };
+          setCategories((current) => [generated, ...current.filter((category) => category.id !== draftId)]);
+          setSelectedId(draftId);
+          setGenerationJobId(null);
+          setGenerationOpen(false);
+          setGenerationForm({ name: "", explanation: "", instructions: "" });
+          setNotice("Borrador generado. Revísalo antes de guardar.");
+          return;
+        }
+
+        if (data.job.status === "FAILED" || data.job.status === "CANCELLED") {
+          setGenerationJobId(null);
+          setError(data.job.error || "La generación no pudo completarse.");
+          return;
+        }
+      } catch (caught) {
+        failures += 1;
+        if (failures >= 3) {
+          setGenerationJobId(null);
+          setError(caught.message);
+          return;
+        }
+      }
+      timer = setTimeout(poll, 2500);
+    };
+
+    poll();
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [generationJobId]);
 
   const selected = categories.find((category) => category.id === selectedId);
   const visibleOptions = useMemo(() => (selected?.options || [])
@@ -108,26 +167,53 @@ export default function AdminCatalog() {
     setNotice("");
     setSaving(true);
     try {
-      const data = await api(`/api/heads-up/admin/categories/${selected.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          category: {
-            nameEs: selected.nameEs,
-            nameEn: selected.nameEn,
-            isActive: selected.isActive,
-            sortOrder: selected.sortOrder,
-          },
-          options: selected.options.map(({ clientKey, ...option }) => option),
-        }),
-      });
+      const draft = {
+        category: {
+          nameEs: selected.nameEs,
+          nameEn: selected.nameEn,
+          isActive: selected.isActive,
+          sortOrder: selected.sortOrder,
+        },
+        options: selected.options.map(({ clientKey, ...option }) => option),
+      };
+      const data = selected.isGeneratedDraft
+        ? await api(`/api/heads-up/admin/generation-jobs/${selected.generationJobId}/import`, {
+          method: "POST",
+          body: JSON.stringify(draft),
+        })
+        : await api(`/api/heads-up/admin/categories/${selected.id}`, {
+          method: "PUT",
+          body: JSON.stringify(draft),
+        });
       setCategories((current) => current.map((category) => category.id === data.category.id
         ? data.category
-        : category));
-      setNotice("Cambios guardados");
+        : category).filter((category) => category.id !== selected.id || category.id === data.category.id));
+      if (selected.isGeneratedDraft) {
+        const refreshed = await api("/api/heads-up/admin/categories");
+        setCategories(refreshed.categories);
+        setSelectedId(data.category.id);
+      }
+      setNotice(selected.isGeneratedDraft ? "Categoría guardada" : "Cambios guardados");
     } catch (caught) {
       setError(caught.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const generateCategory = async (event) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+    try {
+      const data = await api("/api/heads-up/admin/generation-jobs", {
+        method: "POST",
+        body: JSON.stringify(generationForm),
+      });
+      setGenerationJobId(data.job.id);
+      setGenerationStatus(data.job.status);
+    } catch (caught) {
+      setError(caught.message);
     }
   };
 
@@ -177,6 +263,9 @@ export default function AdminCatalog() {
 
         <div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]">
           <aside className="space-y-3">
+            <Button type="button" variant="outline" onClick={() => setGenerationOpen(true)} className="h-11 w-full border-violet-400/40 bg-violet-400/10 font-black text-violet-200 hover:bg-violet-400/20 hover:text-white">
+              <Sparkles /> Generar con Yuri
+            </Button>
             <Button onClick={addCategory} className="h-11 w-full bg-amber-300 font-black text-stone-950"><Plus /> Categoría</Button>
             {categories.map((category) => (
               <button
@@ -242,13 +331,49 @@ export default function AdminCatalog() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Button type="button" variant="outline" onClick={addDraftOption}><Plus /> Agregar palabra</Button>
                 <Button type="button" onClick={saveDraft} disabled={saving} className="h-12 bg-amber-300 px-8 font-black text-stone-950 hover:bg-amber-200">
-                  <Save /> {saving ? "Guardando…" : "Guardar cambios"}
+                  <Save /> {saving ? "Guardando…" : selected.isGeneratedDraft ? "Guardar categoría" : "Guardar cambios"}
                 </Button>
               </div>
             </section>
           )}
         </div>
       </div>
+
+      <Dialog open={generationOpen} onOpenChange={setGenerationOpen}>
+        <DialogContent className="border-stone-700 bg-stone-950 p-6 text-white ring-white/10 sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl font-black"><Sparkles className="text-violet-300" /> Generar categoría</DialogTitle>
+            <DialogDescription className="text-stone-400">Yuri preparará 100 opciones bilingües para revisar.</DialogDescription>
+          </DialogHeader>
+
+          <form id="heads-up-generation-form" onSubmit={generateCategory} className="space-y-4">
+            <label className="block space-y-2 text-sm font-bold">
+              Nombre
+              <Input required maxLength={80} placeholder="Ej. Animales marinos" value={generationForm.name} onChange={(event) => setGenerationForm((current) => ({ ...current, name: event.target.value }))} disabled={Boolean(generationJobId)} />
+            </label>
+            <label className="block space-y-2 text-sm font-bold">
+              Explicación
+              <textarea required maxLength={600} rows={3} placeholder="Qué debe incluir esta categoría" value={generationForm.explanation} onChange={(event) => setGenerationForm((current) => ({ ...current, explanation: event.target.value }))} disabled={Boolean(generationJobId)} className="w-full resize-y rounded-md border border-white/10 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-violet-300 disabled:opacity-50" />
+            </label>
+            <label className="block space-y-2 text-sm font-bold">
+              Instrucciones adicionales
+              <textarea maxLength={1200} rows={4} placeholder="Opcional" value={generationForm.instructions} onChange={(event) => setGenerationForm((current) => ({ ...current, instructions: event.target.value }))} disabled={Boolean(generationJobId)} className="w-full resize-y rounded-md border border-white/10 bg-stone-900 px-3 py-2 text-sm outline-none focus:border-violet-300 disabled:opacity-50" />
+            </label>
+            {generationJobId && (
+              <p role="status" className="flex items-center gap-2 rounded-xl bg-violet-400/10 p-3 text-sm font-semibold text-violet-200">
+                <LoaderCircle className="animate-spin" /> {generationStatus === "RUNNING" ? "Yuri está creando la categoría…" : "Esperando a Yuri…"}
+              </p>
+            )}
+          </form>
+
+          <DialogFooter className="-mx-6 -mb-6 border-white/10 bg-stone-900/80 p-6">
+            <Button type="button" variant="ghost" onClick={() => setGenerationOpen(false)}>Cerrar</Button>
+            <Button type="submit" form="heads-up-generation-form" disabled={Boolean(generationJobId)} className="bg-violet-300 font-black text-stone-950 hover:bg-violet-200">
+              {generationJobId ? <LoaderCircle className="animate-spin" /> : <Sparkles />} Generar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
