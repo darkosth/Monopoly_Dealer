@@ -127,17 +127,39 @@ model ChameleonVote {
 // ==========================================
 
 model HeadsUpCategory {
-  id        String          @id @default(cuid())
-  slug      String          @unique
-  nameEs    String
-  nameEn    String
-  isActive  Boolean         @default(true)
-  sortOrder Int             @default(0)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  options   HeadsUpOption[]
+  id              String                    @id @default(cuid())
+  slug            String                    @unique
+  nameEs          String
+  nameEn          String
+  isActive        Boolean                   @default(true)
+  sortOrder       Int                       @default(0)
+  createdAt       DateTime                  @default(now())
+  updatedAt       DateTime                  @updatedAt
+  generationJobId String?                   @unique
+  generationJob   HeadsUpGenerationJob?     @relation(fields: [generationJobId], references: [id], onDelete: SetNull)
+  options         HeadsUpOption[]
 
   @@index([isActive, sortOrder])
+}
+
+model HeadsUpGenerationJob {
+  id           String           @id @default(cuid())
+  requestName  String
+  explanation  String
+  instructions String           @default("")
+  status       String           @default("PENDING")
+  result       Json?
+  errorCode    String?
+  attemptCount Int              @default(0)
+  lockedAt     DateTime?
+  workerId     String?
+  importedAt   DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  category     HeadsUpCategory?
+
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 model HeadsUpOption {
